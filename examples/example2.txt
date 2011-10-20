@@ -1,0 +1,251 @@
+	Engels	Zweeds
+Pasen	Easter	påsk
+aanbevelen	recommend	rekommendera
+aankomsttijd	time of arrival	ankomsttid
+aardewerk	pottery	keramik, lergods
+achternaam	surname	efternamn
+advies	advice	råd
+afdruk	print	kopia
+afspreken (ontmoeten)	meet up	avtala
+akkoord	Okay	OK
+alstublieft (antwoord)	here you are	varsågod
+antenne	aerial	antenn
+apenstaartje	at(-sign)	snabel-a
+artikel	article	artikel
+automatisch	automatic	automatisk
+avond (s')	(in the) evening	på kvällen
+badmeester	pool attendant	badvakt
+balie	counter	disk
+bang zijn	be afraid	vara rädd
+bank (in park)	bench	bänk
+bed	bed	säng
+beetje, een	a little	lite
+bekeuring	fine	böter
+beneden, naar	down	nere
+beroep	profession	yrke
+beter (na ziekte)	recovered	bättre
+bezienswaardigheid	place of interest	sevärdhet
+bikini	bikini	bikini
+blaas	bladder	blåsa
+bloeddruk	blood pressure	blodtryck
+boeddhistisch	Buddhist	buddistisk
+bonbon	chocolate(s)	pralin
+borstel	brush	borste
+bowlen	bowling	spela bowling
+brengen	bring	ta med
+bron (opwellend water)	spring	källa
+buikpijn	stomach ache	ont i magen
+burgemeester	mayor	borgmästare
+camera	camera	kamera
+cd-rom	CD-ROM	cd-rom
+cheque	cheque	check
+citroen	lemon	citron
+constipatie	constipation	förstoppning
+controleren	check	kontrollera, kolla
+corresponderen	correspond	korrespondera
+dag (hallo)	hello	hej
+delicatessenwinkel	delicatessen	delikatessbutik
+diarree	diarrhoea	diarré
+diepzeeduiken	deep sea diving	djuphavsdykning
+dineren	have dinner	äta middag
+dompelaar	immersion heater	doppvärmare
+dorst hebben	be thirsty	vara törstig
+driehoek	triangle	triangel
+drinken	drink	dricka
+druk (spanning)	pressure	tryck
+duizelig	dizzy	yr i huvudet
+echtgenote	wife	maka
+eerste klas	first class	första klass
+elleboog	elbow	armbåge
+entreebewijs	admission ticket	inträdesbiljett
+evenement	event	evenemang
+feest	party	fest
+fietspomp	bicycle pump	cykelpump
+flauw (eten)	bland	smaklös
+flauwekul	rubbish	larv
+fooi	tip	dricks
+fout (bn)	wrong	felaktig
+garderobe	wardrobe	garderob
+geboren	born	född
+gegevens	information	uppgivter
+geld	money	pengar
+geneesmiddel	medication	läkemedel
+genieten	enjoy	njuta
+geschenk	gift	present, gåva
+gevarendriehoek	warning triangle	varningstriangel
+gezicht	face	ansikte
+godsdienst	religion	religion
+golfslagbad	wave-pool	bassäng med vågmaskin
+grens	border	gräns
+groepsreis	package tour	gruppresa
+haarlak	hairspray	hårspray
+halte	stop	hållplats
+handtekening	signature	underskrift, namnteckning
+hechting	stitch	stygn
+helpen	help	hjälpa
+hier	here	här
+hoest	cough	hosta
+hoeveel?	how much?	hur mycket/många
+hoogteziekte	altitude sickness	höjdsjuka
+huilen	cry	gråta
+hut (niet op schip)	hut	stuga
+identificeren, zich	identify oneself	identifiera sig
+inbegrepen	included	inkluderad
+ingrediënt	ingredient	ingrediens
+insectenbeet	insect bite	insektsbett
+invullen	fill in	fylla i
+jasje	jacket	jakca
+juwelier	jeweller	guldsmed
+kalmeringsmiddel	sedative	lugnande medel
+kampwinkel	camp shop	campingshop
+kassabon	receipt	kvitto
+keer	turn	gång
+kettingslot	chain lock	kedja med hänglås
+kin	chin	haka
+klassiek concert	classical concert	klassisk konsert
+kleuren-tv	colour tv	färg-tv
+kneuzen	bruise	stöta
+knoflook	garlic	vitlök
+koelbox	cool box	kylväska
+koken (eten-)	cook	laga mat
+kopie	copy	kopia
+kotszakje	sick bag	kräkpåse
+krik	jack	domkraft
+kunst	art	konst
+kwal	jellyfish	manet
+lachen	laugh	skratta
+langlaufen	cross-country skiing	längdåkning
+leeftijd	age	ålder
+lens	lens	lins, objektiv
+lichaam	body	kropp
+liften	hitchhike	lifta
+lippenstift	lipstick	läppstift
+lotion	lotion	hudkräm
+luchtvervuiling	air pollution	luftförorening
+maagzweer	ulcer	magsår
+maken (repareren)	fix	laga, reparera
+mat (foto)	mat	matt
+meloen	melon	melon
+metronet	underground railway system	tunnelbanenät
+minder	less	mindre
+mode	fashion	mode
+moeilijkheid	difficulty	svårighet
+moment	moment	ögonblick
+mosterd	mustard	senap
+muis	mouse	mus
+naam (voornaam)	first name	(för)namn
+nagerecht	dessert	efterrätt
+navigatiesysteem	navigation system	navigationssystem
+netwerk	network	nätverk
+nieuwjaarsdag	New Year's Day	nyårsdag
+nooit	never	aldrig
+ochtends ('s)	in the morning	på morgnarna
+olijf	olive	oliv
+onderdak	accomodation	husrum
+ongeluk	accident	olycka
+ontbijt	breakfast	frukost
+ontzettend	terribly	förskräcklig
+oordruppels	eardrops	örondroppar
+opera	opera	opera
+oprit	slip road	påfart
+ouders	parents	föräldrar
+oversteken	cross the road	gå över, korsa
+paleis	palace	slott
+parasol	parasol	parasoll
+pauze	break	paus, rast
+permanent (haar)	perm	permanent
+perron	platform	perrong, plattform, spår
+pijn	pain	ont, smärta, värk
+pinnen	draw money from a cash dispenser	ta ut pengar i bankomat
+plattegrond	city map	karta
+pond	pound	halvt kilo
+portier	porter	portier, portvakt
+prachtig	splendid	praktfull
+programma	programme	program
+rat	rat	råtta
+rechtstreeks	directly	direkt
+regenjas	raincoat	regnrock, regnkappa, regnjacka
+reisbureau	travel agency	resebyrå
+rem	brake	broms
+reserveonderdelen	spare parts	reservdelar
+riem	belt	bälte, skärp
+rijstrook	lane	fil, körfält
+rondreis	round trip	rundresa
+rots	rock	klippa
+rundvlees	beef	oxkött
+sauna	sauna	bastu
+scheermesje	razor blade	rakblad
+schoensmeer	shoe polish	skokräm
+schouwburg	theatre	teater
+schrijven	write	skriva
+shag	rolling tobacco	rulltobak
+sinaasappelsap	orange juice	apelsinjuice
+skipas	lift pass	liftkort
+slaapwagen	sleeping car	sovvagn
+slee	sledge	släde, kälke
+slokdarm	gullet	matstrupe
+snel	fast	snabb
+soa	S.T.D.	könssjukdom
+specialist	specialist	specialist
+spellen	spell	stava
+spoorboekje	timetable	tågtidtabel
+spullen	things	saker, grejor
+starten	start	starta
+stilte	silence	tystnad
+storen	disturb	störa
+strijkbout	iron	strykjärn
+stuk (kapot)	broken	sönder, trasig
+surfplank	surf board	vindsurfingbräda
+tafeltennissen	play table tennis	spela bordtennis
+tas (groot)	bag	väska
+tekenen (signeren)	sign	signera, skriva under, underteckna
+telelens	telephoto lens	teleobjektiv
+tentzeil	canvas	tältduk
+thee	tea	te
+tijdschrift	magazine	tidskrift, tidning
+toeristenkaart	tourist card	turistkort
+tolweg	toll road	betalväg
+totaal	total	total
+trottoir	pavement	trottoar, gångbana
+tweepersoons	double	dubbel, tvåpersons
+uitlaatpijp	exhaust pipe	avgasrör
+uitleggen	explain	förklarra
+uitverkoop	sale	rea(lisation), utförsäljning
+vaas	vase	vas
+vanavond (tot 21 uur)	this evening	i kväll
+veel	much, many	mycket, många
+ventiel	valve	ventil
+verdoven	anaesthetize	bedöva
+vergunning	permit	tillstånd
+verlengen	extend	förlänga
+verschonen (baby)	change the baby's nappy	byta blöjor
+vertrekken	leave	resa, avgå
+vest	cardigan	kofta
+vies	dirty	äcklig, smutsig, inte ren
+vitaminetabletten	vitamin tablets	vitaminpiller
+vliegen	fly	flyga
+voedsel	food	mat
+vol	full	full
+voorhoofd	forehead	panna
+voorvork	fork	framgaffel
+vriend	friend	vän
+vrijwilligerswerk	voluntary work	volontärarbete
+vulling	filling	fyllning
+wachtkamer	waiting room	väntrum, väntsal
+wanneer?	when?	när?
+wassen	wash	tvätta
+watten	cotton wool	bomull
+weekabonnement	weekly ticket	veckokort
+wegwerkzaamheden	roadworks	vägarbete
+werk	work	arbete
+wij	we	vi
+winkelstraat	shopping street	shoppinggata
+wonen	live	bo
+zakdoek	handkerchief	näsduk
+zeeppoeder	washing powder	tvättmedel
+ziekenhuis	hospital	sjukhus
+zitten	sit	sitta
+zonnebril	sunglasses	solglasögon
+zout	salt	salt
+zwanger	pregnant	gravid
+zwemvest	life jacket	flytväst

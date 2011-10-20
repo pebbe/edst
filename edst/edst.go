@@ -29,7 +29,8 @@ func index(w http.ResponseWriter, r *http.Request) {
     <form action="/upload" method="post" enctype="multipart/form-data">
       <fieldset>
         <legend>Data</legend>
-        <a href="examples/example1.txt">example datafile</a><br>&nbsp;<br>
+        <a href="examples/example1.txt">example datafile 1</a><br>
+        <a href="examples/example2.txt">example datafile 2</a><br>&nbsp;<br>
         Data file:<br>
         <input type="file" name="data" size="40">
       </fieldset>

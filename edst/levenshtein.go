@@ -1,5 +1,45 @@
 package edst
 
+/*
+
+ Planning voor levenshtein met tokens
+
+ INDEL: 1
+
+ SUBST:
+
+     als head gelijk en accenten gelijk: 0.0
+
+     als head gelijk en accenten ongelijk: 0.5
+
+     als head ongelijk en bitwise-or klassen niet nul: 1.0
+
+     anders: 2.0
+
+ KLASSEN
+
+     0x0000 matcht niks
+     0xffff matcht alles
+     etc
+
+     accenten: klasse -1, alleen in definitie, niet gebruikt als tokenklasse
+
+     onbekende tekens: klasse 0
+
+     haakjes: { [ ( gelden als accenten van volgende tokens tot na matching ) ] } 
+
+     errors: mismatch van haakjes
+
+ MISSCHIEN
+
+     errors: accenten alleen na sommige klassen?
+
+     pre-modifyers als accenten?
+
+     subklassen?
+
+*/
+
 import (
 	"math"
 	"strings"
@@ -18,7 +58,7 @@ type token struct {
 
 type item struct {
 	n int          // number of words in item: "a / b / c" = 3
-	w [][]token    // a list of words, each a list of tokens
+	w [][]token    // a list of n words, each a list of tokens
 }
 
 func max2int(i1, i2 int) int {
@@ -176,8 +216,7 @@ func editDistance(i1, i2 item) float32 {
 
 }
 
-func tokenize(s string) item {
-
+func itemize(s string) item {
 	stringlist := make([]string, 0, strings.Count(s, " / ") + 1)
 	for _, i := range strings.Split(s, " / ") {
 		i := strings.TrimSpace(i)
@@ -185,18 +224,22 @@ func tokenize(s string) item {
 			stringlist = append(stringlist, i)
 		}
 	}
-
 	n := len(stringlist)
 	it := item{n:n, w:make([][]token, 0, n)}
-
 	for i := 0; i < n; i++ {
-		ww := make([]token, 0, len(stringlist[i]))
-		// TODO: replace with real tokeniser
-		for _, c := range stringlist[i] {
-			t := token{head: c}
-			ww = append(ww, t)
-		}
-		it.w = append(it.w, ww)
+		it.w = append(it.w, tokenize(stringlist[i]))
 	}
 	return it
+}
+
+func tokenize(s string) []token {
+	tokens := make([]token, 0, len(s))
+
+	// TODO: replace with real tokeniser
+	for _, c := range s {
+		t := token{head: c}
+		tokens = append(tokens, t)
+	}
+
+	return tokens
 }

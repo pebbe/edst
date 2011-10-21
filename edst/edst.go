@@ -105,7 +105,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 		items := make([]item, len(cells)-1)
 		for i := 0; i < len(cells)-1; i++ {
-			items[i] = tokenize(cells[i+1]) // skip the first cell, that's a label
+			items[i] = itemize(cells[i+1]) // skip the first cell, that's a label
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {

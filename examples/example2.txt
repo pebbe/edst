@@ -85,7 +85,7 @@ hechting	stitch	stygn
 helpen	help	hjälpa
 hier	here	här
 hoest	cough	hosta
-hoeveel?	how much?	hur mycket/många
+hoeveel?	how much?	hur mycket? / hur många?
 hoogteziekte	altitude sickness	höjdsjuka
 huilen	cry	gråta
 hut (niet op schip)	hut	stuga

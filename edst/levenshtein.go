@@ -1,5 +1,9 @@
 package edst
 
+import (
+	"strings"
+)
+
 var (
 	dst  [][]float32
 	size int = 0
@@ -7,8 +11,13 @@ var (
 
 type token struct {
 	head    int
-	class   int
-	accents []int
+	// class   int
+	// accents []int
+}
+
+type item struct {
+	n int          // number of words in item: "a / b / c" = 3
+	w [][]token    // a list of words, each a list of tokens
 }
 
 func max2int(i1, i2 int) int {
@@ -83,4 +92,34 @@ func Levenshtein(s1, s2 []token) float32 {
 	}
 
 	return dst[l2][l1] / float32(l1+l2)
+}
+
+func editDistance(i1, i2 item) float32 {
+	// for now, use only the first one
+	return Levenshtein(i1.w[0], i2.w[0])
+}
+
+func tokenize(s string) item {
+
+	stringlist := make([]string, 0, strings.Count(s, " / ") + 1)
+	for _, i := range strings.Split(s, " / ") {
+		i := strings.TrimSpace(i)
+		if i != "" {
+			stringlist = append(stringlist, i)
+		}
+	}
+
+	n := len(stringlist)
+	it := item{n:n, w:make([][]token, 0, n)}
+
+	for i := 0; i < n; i++ {
+		ww := make([]token, 0, len(stringlist[i]))
+		// TODO: replace with real tokeniser
+		for _, c := range stringlist[i] {
+			t := token{head: c}
+			ww = append(ww, t)
+		}
+		it.w = append(it.w, ww)
+	}
+	return it
 }

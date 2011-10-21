@@ -22,7 +22,7 @@ func index(w http.ResponseWriter, r *http.Request) {
     <ul>
       <li>edit distance on tokenised strings, with proper weights
           (now: plain edit distance on raw strings)
-      <li>handle multiple strings per cell (now: treated as single string)
+      <li>handle multiple strings per cell (now: use only the first string)
       <li>print list of tokens with classification
       <li>handle errors
     </ul>
@@ -44,24 +44,28 @@ func index(w http.ResponseWriter, r *http.Request) {
 func upload(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-type", "text/plain; charset=utf-8")
 
+
+	// get data as lines of string, properly decoded
 	f, _, e := r.FormFile("data")
 	if e != nil {
 		fmt.Fprintln(w, e)
 		return
 	}
-
-	fmt.Fprintf(w, "%c", 0xfeff)
-
 	d, e := ioutil.ReadAll(f)
 	if e != nil {
 		fmt.Fprintln(w, e)
 		return
 	}
-
-	data, _ := decode(d)
-
+	data, _ := decode(d)   // from []byte to string
 	lines := strings.SplitAfter(data, "\n")
 
+
+	// output BOM for UTF-8
+	fmt.Fprintf(w, "%c", 0xfeff)
+
+
+
+	// do the data header
 	idx := 0
 	for {
 		if strings.TrimSpace(lines[idx]) == "" {
@@ -84,44 +88,36 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintln(w)
 
+
+	// do the rest of the data
 	for idx++; idx < len(lines); idx++ {
 		if strings.TrimSpace(lines[idx]) == "" {
 			continue
 		}
 
-		items := strings.Split(lines[idx], "\t")
-		for i := 0; i < len(items); i++ {
-			items[i] = strings.TrimSpace(items[i])
-		}
+		cells := strings.Split(lines[idx], "\t")
 
 		sep := ""
-		for _, i := range items {
-			fmt.Fprintf(w, "%v%v", sep, i)
+		for _, i := range cells {
+			fmt.Fprintf(w, "%v%v", sep, strings.TrimSpace(i))
 			sep = "\t"
 		}
 
-
-		words := make([][]token, len(items)-1)
-		for i := 0; i < len(items)-1; i++ {
-			words[i] = make([]token, 0, len(items[i+1]))
-			// TODO: replace with real tokeniser
-			for _, c := range items[i+1] {
-				t := token{head: c}
-				words[i] = append(words[i], t)
-			}
-
+		items := make([]item, len(cells)-1)
+		for i := 0; i < len(cells)-1; i++ {
+			items[i] = tokenize(cells[i+1]) // skip the first cell, that's a label
 		}
-
-		for i := 0; i < len(words)-1; i++ {
-			for j := i + 1; j < len(words); j++ {
-				if len(words[i]) == 0 || len(words[j]) == 0 {
+		for i := 0; i < len(items)-1; i++ {
+			for j := i + 1; j < len(items); j++ {
+				if items[i].n == 0 || items[j].n == 0 {
 					fmt.Fprintf(w, "\tNA")
 				} else {
-					fmt.Fprintf(w, "\t%.7f", Levenshtein(words[i], words[j]))
-					// fmt.Fprintf(w, "\n\t%v\n\t%v", words[i], words[j])
+					fmt.Fprintf(w, "\t%.7f", editDistance(items[i], items[j]))
+					//fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
 				}
 			}
 		}
+
 		fmt.Fprintln(w)
 	}
 }

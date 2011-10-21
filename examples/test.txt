@@ -1,10 +1,21 @@
-	p1	p2
-NaN	a	
-NaN		a
-NaN		
-0.0	a	a
-1.0	a	b
-0.5	a / b	a
-0.5	a	a / b
-0.0	a / a / b	b / a / a / b / a / a
-0.0	a / a / b / b	a / b / a / b / a / b
+# tests for the itemizer
+
+# column labels, first column empty:
+	p 1	p 2
+
+# these should be NaN
+test 1	a	
+test 2		a
+test 3		
+
+# these should be 0.0
+test 4	a	a
+test 5	a / a / b	b / a / a / b / a / a
+test 6	a / a / b / b	a / b / a / b / a / b
+
+# these should be 0.5
+test 7	a / b	a
+test 8	a	a / b
+
+# these should be 1.0
+test 9	a	b

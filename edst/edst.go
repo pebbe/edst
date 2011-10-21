@@ -68,7 +68,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	// do the data header
 	idx := 0
 	for {
-		if strings.TrimSpace(lines[idx]) == "" {
+		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
+			fmt.Fprintf(w, lines[idx])
 			idx++
 		} else {
 			break
@@ -83,7 +84,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	for i := 0; i < len(xlabs)-1; i++ {
 		for j := i + 1; j < len(xlabs); j++ {
-			fmt.Fprintf(w, "\t%v__%v", strings.TrimSpace(xlabs[i]), strings.TrimSpace(xlabs[j]))
+			fmt.Fprintf(w, "\t%v:%v", strings.TrimSpace(xlabs[i]), strings.TrimSpace(xlabs[j]))
 		}
 	}
 	fmt.Fprintln(w)
@@ -91,7 +92,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	// do the rest of the data
 	for idx++; idx < len(lines); idx++ {
-		if strings.TrimSpace(lines[idx]) == "" {
+		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
+			fmt.Fprintf(w, lines[idx])
 			continue
 		}
 

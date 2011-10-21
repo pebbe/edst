@@ -22,7 +22,7 @@ func index(w http.ResponseWriter, r *http.Request) {
     <ul>
       <li>edit distance on tokenised strings, with proper weights
           (now: plain edit distance on raw strings)
-      <li>handle multiple strings per cell (now: use only the first string)
+      <li><s>handle multiple strings per cell</s>
       <li>print list of tokens with classification
       <li>handle errors
     </ul>
@@ -109,12 +109,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				if items[i].n == 0 || items[j].n == 0 {
-					fmt.Fprintf(w, "\tNA")
-				} else {
-					fmt.Fprintf(w, "\t%.7f", editDistance(items[i], items[j]))
-					//fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
-				}
+				fmt.Fprintf(w, "\t%.7f", editDistance(items[i], items[j]))
+				//fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
 			}
 		}
 

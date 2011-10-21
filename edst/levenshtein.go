@@ -1,6 +1,7 @@
 package edst
 
 import (
+	"math"
 	"strings"
 )
 
@@ -35,6 +36,24 @@ func min3float32(f1, f2, f3 float32) float32 {
 		return f2
 	}
 	return f3
+}
+
+func kgv(l1, l2 int) int {
+    var ll1, ll2 int
+    ll1 = l1
+    ll2 = l2
+    for {
+        if ll1 == ll2 {
+			return ll1
+		}
+        for ll1 < ll2 {
+            ll1 += l1
+		}
+        for ll2 < ll1 {
+            ll2 += l2
+		}
+    }
+	return 0
 }
 
 func diff(i1, i2 token) float32 {
@@ -95,8 +114,66 @@ func Levenshtein(s1, s2 []token) float32 {
 }
 
 func editDistance(i1, i2 item) float32 {
-	// for now, use only the first one
-	return Levenshtein(i1.w[0], i2.w[0])
+	// 0 * n
+	if i1.n == 0 || i2.n == 0 {
+		return float32(math.NaN())
+	}
+
+	// 1 * 1
+	if i1.n == 1 && i2.n == 1 {
+		return Levenshtein(i1.w[0], i2.w[0])
+	}
+
+	// 1 * n
+	if i2.n == 1 {
+		i1, i2 = i2, i1
+	}
+	if i1.n == 1 {
+		var sum float32
+		sum = 0.0
+		for i := 0; i < i2.n; i++ {
+			sum +=  Levenshtein(i1.w[0], i2.w[i])
+		}
+		return sum / float32(i2.n);
+	}
+
+	// n * n
+	n1 := i1.n
+	n2 := i2.n
+	d := make([][]float32, n1)
+	for i := 0; i < n1; i++ {
+		d[i] = make([]float32, n2)
+	}
+	for i := 0; i < n1; i++ {
+		for j := 0; j < n2; j++ {
+			d[i][j] = Levenshtein(i1.w[i], i2.w[j])
+		}
+	}
+	l := kgv(n1, n2)
+	d1 := make([]int, l)
+	d2 := make([]int, l)
+	for i := 0; i < l; i++ {
+		d1[i] = i % n1
+		d2[i] = i % n2
+	}
+    for found := true; found; {
+        found = false
+        for i := 0; i < l; i++ {
+            for j := i + 1; j < l; j++ {
+                if d[d1[i]][d2[i]] + d[d1[j]][d2[j]] > d [d1[i]][d2[j]] + d[d1[j]][d2[i]] {
+                    d2[i], d2[j] = d2[j], d2[i]
+                    found = true
+                }
+            }
+		}
+	}
+	var sum float32
+	sum = 0.0
+    for i := 0; i < l; i++ {
+        sum += d[d1[i]][d2[i]]
+	}
+    return sum / float32(l)
+
 }
 
 func tokenize(s string) item {

@@ -10,55 +10,7 @@ import (
 )
 
 func init() {
-	http.HandleFunc("/", index)
 	http.HandleFunc("/submit", submit)
-}
-
-func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, `<html>
-  <head>
-    <title>Edit distance</title>
-  </head>
-  <body>
-    <b>To do:</b>
-    <ul>
-      <li><s>edit distance on tokenised strings, with proper weights</s>
-      <li><s>handle multiple strings per cell</s>
-      <li>print list of tokens with classification
-      <li>handle errors
-    </ul>
-    <form action="/submit" method="post" enctype="multipart/form-data">
-      <fieldset>
-        <legend>input</legend>
-	<fieldset>
-	  <legend>data</legend>
-	  <a href="examples/example1.txt">example datafile 1</a><br>
-	  <a href="examples/example2.txt">example datafile 2</a><br>&nbsp;<br>
-	  Data file:<br>
-	  <input type="file" name="data" size="40">
-	</fieldset>
-	<fieldset>
-	  <legend>definition</legend>
-	  <a href="examples/orthographic.txt">orthographic example</a><br>
-	  <a href="examples/phonetic.txt">phonetic example</a><br>&nbsp;<br>
-	  OPTIONAL: Definition file:<br>
-	  <input type="file" name="def" size="40">
-	</fieldset>
-      </fieldset>
-      <fieldset>
-	<legend>output</legend>
-	<select name="choice">
-	  <option value="edst">edit distances</option>
-	  <option value="alig">alignments</option>
-	  <!-- <option value="info">info</option> -->
-	</select>
-      </fieldset>
-      <input type="submit">
-      <input type="reset">
-    </form>
-  </body>
-</html>
-`)
 }
 
 func submit(w http.ResponseWriter, r *http.Request) {

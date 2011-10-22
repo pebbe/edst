@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>Edit distance</title>
+  </head>
+  <body>
+    <b>To do:</b>
+    <ul>
+      <li><s>edit distance on tokenised strings, with proper weights</s>
+      <li><s>handle multiple strings per cell</s>
+      <li>print list of tokens with classification
+      <li>handle errors
+    </ul>
+    <form action="/submit" method="post" enctype="multipart/form-data">
+      <fieldset>
+	<legend>input</legend>
+	<fieldset>
+	  <legend>data</legend>
+	  <a href="examples/example1.txt">example datafile 1</a><br>
+	  <a href="examples/example2.txt">example datafile 2</a><br>&nbsp;<br>
+	  Data file:<br>
+	  <input type="file" name="data" size="40">
+	</fieldset>
+	<fieldset>
+	  <legend>definition</legend>
+	  <a href="examples/orthographic.txt">orthographic example</a><br>
+	  <a href="examples/phonetic.txt">phonetic example</a><br>&nbsp;<br>
+	  OPTIONAL: Definition file:<br>
+	  <input type="file" name="def" size="40">
+	</fieldset>
+      </fieldset>
+      <fieldset>
+	<legend>output</legend>
+	<select name="choice">
+	  <option value="edst">edit distances</option>
+	  <option value="alig">alignments</option>
+	  <!-- <option value="info">info</option> -->
+	</select>
+      </fieldset>
+      <input type="submit">
+      <input type="reset">
+    </form>
+  </body>
+</html>
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+coding:utf-8
+sgml-declaration:"HTML4.01/HTML4.decl"
+sgml-omittag:t
+sgml-shorttag:nil
+End:
+-->

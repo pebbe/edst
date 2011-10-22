@@ -1,0 +1,28 @@
+
+table.align {
+    margin-bottom: 1em;
+}
+
+table.align tr td {
+    padding: .5em;
+    background-color: #e0e0e0;
+    text-align: center;
+}
+
+table.align tr.txt td {
+    font-family: "Arial Unicode MS", "Lucida Grande", "Charis SIL", "Gentium", "Doulos SIL";
+}
+
+table.align tr td.white {
+    background-color: #ffffff;
+}
+
+table.align tr td.total {
+    background-color: #e0e0ff;
+    font-weight: bold;
+}
+
+span.space {
+    color: #ff0000;
+}
+

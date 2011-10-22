@@ -1,0 +1,96 @@
+# EXAMPLE definition file
+
+# For PHONETIC data
+
+# Default values for: substitution indel modifier
+DEFAULTS 2.0 1.0 0.5
+
+# First letter of each pair is replaced by second letter
+EQUI
+
+# This: a{bc}d
+# will tokenize as: a b{ c{ d
+# Mismatch of paren should cause error
+PAREN
+{} [] ()
+
+
+# Characters in all following definitions can be written by itself or numerically
+# These are the same: a 97 0x61 U+0061
+
+# This: ab~c
+# will tokenize as: a b~ c
+# Modifiers not after head should cause error
+MOD
+:
+U+02B2
+U+02D0
+U+02D1
+U+0302
+U+0303
+U+0306
+U+031D
+U+031E
+U+031F
+U+0320
+U+0325
+U+0329
+U+032C
+
+
+# Indels with non-default values
+# Characters can be in only one set
+INDEL 0.0
+32
+
+# Substitution sets with non-default values
+# Characters can be in multiple sets
+# Order is importent, first matching set is used
+SUBST 1.0
+b d c f g h j
+k l m n p q r
+s t v w x y z
+U+014B
+U+0261
+U+0263
+U+0280
+U+0283
+U+028B
+U+0294
+# semivowels
+U+025A
+U+025D
+U+0265
+U+0270
+U+0279
+U+027B
+
+
+SUBST 1.0
+a e i o u y
+U+00E6
+U+00F8
+U+0153
+U+0251
+U+0254
+U+0259
+U+025B
+U+026A
+U+028A
+U+028F
+# semivowels
+U+006A
+U+0077
+U+0265
+U+0270
+U+0279
+U+027B
+U+028B
+
+
+# all remaining characters are treated as heads with default subst value 
+
+# END
+
+# Possible future extensions
+# - Multi-character heads, such as: ij ch

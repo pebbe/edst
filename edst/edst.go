@@ -2,14 +2,16 @@ package edst
 
 import (
 	"fmt"
+	"html"
 	"http"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
 func init() {
 	http.HandleFunc("/", index)
-	http.HandleFunc("/upload", upload)
+	http.HandleFunc("/submit", submit)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -20,50 +22,88 @@ func index(w http.ResponseWriter, r *http.Request) {
   <body>
     <b>To do:</b>
     <ul>
-      <li>edit distance on tokenised strings, with proper weights
-          (now: plain edit distance on raw strings)
+      <li><s>edit distance on tokenised strings, with proper weights</s>
       <li><s>handle multiple strings per cell</s>
       <li>print list of tokens with classification
       <li>handle errors
     </ul>
-    <form action="/upload" method="post" enctype="multipart/form-data">
+    <form action="/submit" method="post" enctype="multipart/form-data">
       <fieldset>
-        <legend>Data</legend>
-        <a href="examples/example1.txt">example datafile 1</a><br>
-        <a href="examples/example2.txt">example datafile 2</a><br>&nbsp;<br>
-        Data file:<br>
-        <input type="file" name="data" size="40">
+        <legend>input</legend>
+	<fieldset>
+	  <legend>data</legend>
+	  <a href="examples/example1.txt">example datafile 1</a><br>
+	  <a href="examples/example2.txt">example datafile 2</a><br>&nbsp;<br>
+	  Data file:<br>
+	  <input type="file" name="data" size="40">
+	</fieldset>
+	<fieldset>
+	  <legend>definition</legend>
+	  <a href="examples/orthographic.txt">orthographic example</a><br>
+	  <a href="examples/phonetic.txt">phonetic example</a><br>&nbsp;<br>
+	  OPTIONAL: Definition file:<br>
+	  <input type="file" name="def" size="40">
+	</fieldset>
       </fieldset>
-      <input type="submit" value="Upload data file">
+      <fieldset>
+	<legend>output</legend>
+	<select name="choice">
+	  <option value="edst">edit distances</option>
+	  <option value="alig">alignments</option>
+	  <!-- <option value="info">info</option> -->
+	</select>
+      </fieldset>
+      <input type="submit">
+      <input type="reset">
     </form>
   </body>
 </html>
 `)
 }
 
-func upload(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-type", "text/plain; charset=utf-8")
+func submit(w http.ResponseWriter, r *http.Request) {
+	datalines, dataerror := gettextfile(r, "data")
+	deflines, deferror := gettextfile(r, "def")
+	choice := r.FormValue("choice")
 
+	reset()
 
+	if deferror == nil {
+		setup(deflines)
+	}
+
+	switch choice {
+	case "edst":
+		doEdst(w, datalines, dataerror)
+	case "alig":
+		doAlign(w, datalines, dataerror)
+	} 
+}
+
+func gettextfile(r *http.Request, key string) ([]string, os.Error) {
 	// get data as lines of string, properly decoded
-	f, _, e := r.FormFile("data")
+	f, _, e := r.FormFile(key)
 	if e != nil {
-		fmt.Fprintln(w, e)
-		return
+		return nil, e
 	}
 	d, e := ioutil.ReadAll(f)
 	if e != nil {
-		fmt.Fprintln(w, e)
-		return
+		return nil, e
 	}
-	data, _ := decode(d)   // from []byte to string
-	lines := strings.SplitAfter(data, "\n")
+	s, _ := decode(d)   // from []byte to string
+	return strings.SplitAfter(s, "\n"), nil
+}
 
-
+func doEdst(w http.ResponseWriter, lines []string, error os.Error) {
+	w.Header().Add("Content-type", "text/plain; charset=utf-8")
+	
 	// output BOM for UTF-8
 	fmt.Fprintf(w, "%c", 0xfeff)
 
-
+	if error != nil {
+		fmt.Fprintf(w, "Error data file\n%v\n", error)
+		return
+	}
 
 	// do the data header
 	idx := 0
@@ -112,10 +152,85 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
 				fmt.Fprintf(w, "\t%.7f", editDistance(items[i], items[j]))
-				//fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
+				// fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
 			}
 		}
 
 		fmt.Fprintln(w)
 	}
+
+}
+
+func doAlign(w http.ResponseWriter, lines []string, error os.Error) {
+	fmt.Fprint(w, `<html>
+  <head>
+    <title>Alignments</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+`)
+
+	if error != nil {
+		fmt.Fprintf(w, "<h1>Error data file</h1>\n<div>%s</div>\n</body>\n</html>\n", html.EscapeString(error.String()))
+		return
+	}
+
+	/*
+	fmt.Fprintf(w, "<pre>\nequi:\n%v\n</pre>\n", equi)
+	fmt.Fprintf(w, "<pre>\nparen:\n%v\n%v\n</pre>\n", paren, paren2)
+	fmt.Fprintf(w, "<pre>\nmods:\n%v\n</pre>\n", mods)
+	fmt.Fprintf(w, "<pre>\nindel:\n%v\n</pre>\n", indelSets)
+	fmt.Fprintf(w, "<pre>\nsubst:\n%v\n</pre>\n", substSets)
+	 */
+
+	// do the data header
+	idx := 0
+	for {
+		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
+			idx++
+		} else {
+			break
+		}
+	}
+	xlabs := strings.Split(lines[idx], "\t")
+	if strings.TrimSpace(xlabs[0]) == "" {
+		xlabs = xlabs[1:]
+	}
+	for i, xlab := range xlabs {
+		xlabs[i] = html.EscapeString(strings.TrimSpace(xlab))
+	}
+
+
+	// do the rest of the data
+	for idx++; idx < len(lines); idx++ {
+		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
+			continue
+		}
+
+		cells := strings.Split(lines[idx], "\t")
+
+		ylab := cells[0]
+		cells = cells[1:]
+
+		fmt.Fprintf(w, "<h2>%s</h2>\n", html.EscapeString(ylab))
+
+		items := make([]item, len(cells))
+		for i := 0; i < len(cells); i++ {
+			items[i] = itemize(cells[i])
+		}
+		for i := 0; i < len(items)-1; i++ {
+			for j := i + 1; j < len(items); j++ {
+				fmt.Fprintf(w, "<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
+				for _, iti := range items[i].w {
+					for _, itj := range items[j].w {
+						LevenshteinAlignment(w, iti, itj)
+					}
+				}
+			}
+		}
+
+	}
+
+	fmt.Fprintln(w, "</body>\n</html>")
+
 }

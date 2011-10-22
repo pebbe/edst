@@ -1,0 +1,93 @@
+# EXAMPLE definition file
+
+# For ORTHOGRAPIC data
+
+# Default values for: substitution indel modifier
+DEFAULTS 2.0 1.0 0.5
+
+# First letter of each pair is replaced by second letter
+EQUI
+Aa Bb Cc Dd Ee Ff Gg Hh
+Ii Jj Kk Ll Mm Nn Oo Pp
+Qq Rr Ss Tt Uu Vv Ww Xx
+Yy Zz
+Àà Áá Ââ Ãã Ää Åå Ææ
+Çç
+Èè Éé Êê Ëë
+Ìì Íí Îî Ïï
+Ðð
+Ññ
+Òò Óó Ôô Õõ Öö Øø
+Ùù Úú Ûû Üü
+Ýý
+Þþ
+
+# This: a{bc}d
+# will tokenize as: a b{ c{ d
+# Mismatch of paren should cause error
+PAREN
+
+# Characters in all following definitions can be written by itself or numerically
+# These are the same: a 97 0x61 U+0061
+
+# This: ab~c
+# will tokenize as: a b~ c
+# Modifiers not after head should cause error
+MOD
+
+# Indels with non-default values
+# Characters can be in only one set
+INDEL 0.0
+32
+
+INDEL 0.5
+- " '
+
+# Substitution sets with non-default values
+# Characters can be in multiple sets
+# Order is importent, first matching set is used
+SUBST 0.5
+f v
+
+SUBST 0.5
+v w
+
+SUBST 0.5
+t d
+
+SUBST 0.5
+p b
+
+SUBST 0.5
+k g
+
+SUBST 0.5
+n m
+
+SUBST 0.5
+r l
+
+SUBST 0.5
+s z
+
+SUBST 1.0
+b d c f g h j
+k l m n p q r
+s t v w x y z
+ç ð ñ þ
+
+SUBST 1.0
+a e i o u y
+à á â ã ä å æ
+è é ê ë
+ì í î ï
+ò ó ô õ ö ø
+ù ú û ü
+ý
+
+# all remaining characters are treated as heads with default subst value 
+
+# END
+
+# Possible future extensions
+# - Multi-character heads, such as: ij ch

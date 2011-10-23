@@ -22,6 +22,7 @@ PAREN
 # will tokenize as: a b~ c
 # Modifiers not after head should cause error
 MOD
+.
 :
 U+02B2
 U+02D0

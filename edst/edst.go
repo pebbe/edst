@@ -29,7 +29,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 		doEdst(w, datalines, dataerror)
 	case "alig":
 		doAlign(w, datalines, dataerror)
-	} 
+	}
 }
 
 func gettextfile(r *http.Request, key string) ([]string, os.Error) {
@@ -42,13 +42,13 @@ func gettextfile(r *http.Request, key string) ([]string, os.Error) {
 	if e != nil {
 		return nil, e
 	}
-	s, _ := decode(d)   // from []byte to string
+	s, _ := decode(d) // from []byte to string
 	return strings.SplitAfter(s, "\n"), nil
 }
 
 func doEdst(w http.ResponseWriter, lines []string, error os.Error) {
 	w.Header().Add("Content-type", "text/plain; charset=utf-8")
-	
+
 	// output BOM for UTF-8
 	fmt.Fprintf(w, "%c", 0xfeff)
 
@@ -80,7 +80,6 @@ func doEdst(w http.ResponseWriter, lines []string, error os.Error) {
 		}
 	}
 	fmt.Fprintln(w)
-
 
 	// do the rest of the data
 	for idx++; idx < len(lines); idx++ {
@@ -128,12 +127,12 @@ func doAlign(w http.ResponseWriter, lines []string, error os.Error) {
 	}
 
 	/*
-	fmt.Fprintf(w, "<pre>\nequi:\n%v\n</pre>\n", equi)
-	fmt.Fprintf(w, "<pre>\nparen:\n%v\n%v\n</pre>\n", paren, paren2)
-	fmt.Fprintf(w, "<pre>\nmods:\n%v\n</pre>\n", mods)
-	fmt.Fprintf(w, "<pre>\nindel:\n%v\n</pre>\n", indelSets)
-	fmt.Fprintf(w, "<pre>\nsubst:\n%v\n</pre>\n", substSets)
-	 */
+	 fmt.Fprintf(w, "<pre>\nequi:\n%v\n</pre>\n", equi)
+	 fmt.Fprintf(w, "<pre>\nparen:\n%v\n%v\n</pre>\n", paren, paren2)
+	 fmt.Fprintf(w, "<pre>\nmods:\n%v\n</pre>\n", mods)
+	 fmt.Fprintf(w, "<pre>\nindel:\n%v\n</pre>\n", indelSets)
+	 fmt.Fprintf(w, "<pre>\nsubst:\n%v\n</pre>\n", substSets)
+	*/
 
 	// do the data header
 	idx := 0
@@ -151,7 +150,6 @@ func doAlign(w http.ResponseWriter, lines []string, error os.Error) {
 	for i, xlab := range xlabs {
 		xlabs[i] = html.EscapeString(strings.TrimSpace(xlab))
 	}
-
 
 	// do the rest of the data
 	for idx++; idx < len(lines); idx++ {

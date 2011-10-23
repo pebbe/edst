@@ -11,70 +11,8 @@ import (
 	"utf8"
 )
 
-var example = `
-
-# EXAMPLE definition file
-
-# Default values for: substitution indel modifier
-DEFAULTS 2.0 1.0 0.5
-
-# First letter of each pair is replaced by second letter
-EQUI
-Aa Bb Cc Dd Ee Ff Gg Hh
-Ii Jj Kk Ll Mm Nn Oo Pp
-Qq Rr Ss Tt Uu Vv Ww Xx
-Yy Zz
-
-# This: a{bc}d
-# will tokenize as: a b{ c{ d
-# Mismatch of paren will cause error
-PAREN
-{} [] ()
-
-# Characters in all following definitions can be written by itself or numerically
-# These are the same: a 97 0x61 U+0061
-
-# This: ab~c
-# will tokenize as: a b~ c
-# Modifiers not after head will cause error
-MOD
-~ ^
-
-# Indels with non-default values
-# Characters can be in only one set
-INDEL 0.0
-32
-
-INDEL 0.5
-- "
-
-# Substitution sets with non-default values
-# Characters can be in multiple sets
-# Order is importent, first matching set is used
-SUBST 0.5
-v f
-
-SUBST 0.5
-v w
-
-SUBST 1.0
-b d c f g h j
-k l m n p q r
-s t v w x y z
-
-SUBST 1.0
-a e i o u
-
-# all remaining characters are treated as heads with default subst value 
-
-# END
-
-# Possible future extensions
-# - Multi-character heads, such as: ij ch
-
-`
-
 type StateType int
+
 const (
 	NULL StateType = iota
 	EQUI
@@ -91,45 +29,42 @@ type set struct {
 
 var (
 	dst   [][]float32
-	size  int
+	size  int = 0
 	adst  [][]cell
-	asize int
+	asize int = 0
 
 	substvalue float32
 	indelvalue float32
 	modvalue   float32
 
-	paren  map[string]string
-	paren2  map[string]string
-	equi  map[string]string
-	mods  map[string]bool
+	paren     map[string]string
+	paren2    map[string]string
+	equi      map[string]string
+	mods      map[string]bool
 	indelSets []set
 	substSets []set
 )
 
 func reset() {
-	size = 0
-	asize = 0
 	paren = make(map[string]string)
 	paren2 = make(map[string]string)
 	equi = make(map[string]string)
 	mods = make(map[string]bool)
 	substvalue = 2.0
 	indelvalue = 1.0
-	modvalue   = 0.5
-	indelSets = make([]set, 0)
-	substSets = make([]set, 0)
+	modvalue = 0.5
+	indelSets = make([]set, 0, 50)
+	substSets = make([]set, 0, 50)
 }
 
-
 type cell struct {
-	f float32
+	f                      float32
 	above, left, aboveleft bool
 }
 
 type token struct {
 	head string
-	mods string   // sorted for easy comparison
+	mods string // sorted for easy comparison
 	str  string
 }
 
@@ -181,7 +116,7 @@ func diff(i1, i2 token) float32 {
 		} else {
 			i = i2.head
 		}
-		for _, j := range indelSets {		
+		for _, j := range indelSets {
 			if j.s[i] {
 				return j.f
 			}
@@ -195,7 +130,7 @@ func diff(i1, i2 token) float32 {
 		}
 		return modvalue
 	}
-	for _, i := range substSets {		
+	for _, i := range substSets {
 		if i.s[i1.head] && i.s[i2.head] {
 			return i.f
 		}
@@ -284,7 +219,7 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 	for _, yc = range s1 {
 		y++
 		adst[0][y].f = adst[0][y-1].f + diff(nul, yc)
-		adst[0][y].above = true 
+		adst[0][y].above = true
 	}
 
 	x = 0
@@ -301,7 +236,7 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 				adst[x][y].aboveleft = true
 				continue
 			}
-			if  above <= left {
+			if above <= left {
 				adst[x][y].f = above
 				adst[x][y].above = true
 				continue
@@ -311,9 +246,9 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 		}
 	}
 
-	line1 := make([]string, l1 + l2)
-	line2 := make([]string, l1 + l2)
-	line3 := make([]float32, l1 + l2)
+	line1 := make([]string, l1+l2)
+	line2 := make([]string, l1+l2)
+	line3 := make([]float32, l1+l2)
 	ln := 0
 	var F func(int, int)
 	F = func(x, y int) {
@@ -339,7 +274,7 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 		line2[ln] = html.EscapeString(s2[x-1].str)
 		ln++
 		F(x-1, y)
-		
+
 	}
 	F(l2, l1)
 
@@ -361,14 +296,14 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 	fmt.Fprintf(w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr>\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line3[i] != f {
-			fmt.Fprintf(w, "<td>%g</td>\n", line3[i] - f)
+			fmt.Fprintf(w, "<td>%g</td>\n", line3[i]-f)
 			f = line3[i]
 		} else {
 			fmt.Fprintf(w, "<td>&nbsp;</td>\n")
 		}
 
 	}
-	fmt.Fprintf(w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", adst[l2][l1].f, l1+l2, adst[l2][l1].f / float32(l1 + l2))
+	fmt.Fprintf(w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", adst[l2][l1].f, l1+l2, adst[l2][l1].f/float32(l1+l2))
 
 }
 
@@ -487,7 +422,7 @@ func tokenize(s string) []token {
 		if paren[cc] != "" {
 			finish()
 			parlist = append(parlist, cc)
-			str = str + c
+			str += c
 		} else if paren2[cc] != "" {
 			if len(parlist) > 0 && parlist[len(parlist)-1] == paren2[cc] {
 
@@ -495,20 +430,23 @@ func tokenize(s string) []token {
 				parlist = parlist[:len(parlist)-1]
 
 			}
-			str = str + c
+			str += c
 		} else if mods[cc] {
 			modlist = append(modlist, cc)
-			str = str + c
+			str += c
 		} else {
 			finish()
 
 			head = cc
 
 			// copy parlist into modlist
-			modlist = parlist[0:len(parlist)]
+			modlist = modlist[:0]
+			for _,i := range(parlist) {
+				modlist = append(modlist, i)
+			}
 
 			state = 1
-			str = str + c
+			str += c
 		}
 	}
 	finish()
@@ -519,12 +457,7 @@ func tokenize(s string) []token {
 func setup(lines []string) {
 
 	var f float32
-	var items []string
-
-	substvalue = 2.0
-	indelvalue = 1.0
-	modvalue = 0.5
-
+	items := make([]string, 0, 300)
 	state := NULL
 
 	finish := func() {
@@ -541,28 +474,27 @@ func setup(lines []string) {
 				paren2[chrs[1]] = chrs[0]
 			}
 		} else if state == MOD {
-			for _,i := range(items) {
+			for _, i := range items {
 				mods[i] = true
 			}
 		} else if state == INDEL {
 			m := make(map[string]bool)
-			for _,i := range(items) {
+			for _, i := range items {
 				m[i] = true
 			}
-			indelSets = append(indelSets, set{f:f, s:m})		
+			indelSets = append(indelSets, set{f: f, s: m})
 		} else if state == SUBST {
 			m := make(map[string]bool)
-			for _,i := range(items) {
+			for _, i := range items {
 				m[i] = true
 			}
-			substSets = append(substSets, set{f:f, s:m})		
+			substSets = append(substSets, set{f: f, s: m})
 		}
-
 
 		state = NULL
 	}
 
-	for _, line:= range lines {
+	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || line[:1] == "#" {
 			continue
@@ -571,32 +503,32 @@ func setup(lines []string) {
 			finish()
 			a := strings.Fields(line)
 			substvalue, _ = strconv.Atof32(a[1])
-			indelvalue,_ = strconv.Atof32(a[2])
-			modvalue,_ = strconv.Atof32(a[3])
+			indelvalue, _ = strconv.Atof32(a[2])
+			modvalue, _ = strconv.Atof32(a[3])
 		} else if line == "EQUI" {
 			finish()
 			state = EQUI
-			items = make([]string, 0, 300)
+			items = items[:0]
 		} else if line == "PAREN" {
 			finish()
 			state = PAREN
-			items = make([]string, 0, 300)
+			items = items[:0]
 		} else if line == "MOD" {
 			finish()
 			state = MOD
-			items = make([]string, 0, 300)
+			items = items[:0]
 		} else if strings.HasPrefix(line, "INDEL") {
 			finish()
 			a := strings.Fields(line)
-			f,_ = strconv.Atof32(a[1])
+			f, _ = strconv.Atof32(a[1])
 			state = INDEL
-			items = make([]string, 0, 300)
+			items = items[:0]
 		} else if strings.HasPrefix(line, "SUBST") {
 			finish()
 			a := strings.Fields(line)
-			f,_ = strconv.Atof32(a[1])
+			f, _ = strconv.Atof32(a[1])
 			state = SUBST
-			items = make([]string, 0, 300)
+			items = items[:0]
 		} else {
 			if state == MOD || state == INDEL || state == SUBST {
 				a := strings.Fields(line)
@@ -606,10 +538,10 @@ func setup(lines []string) {
 					} else if c[:2] == "0x" || c[:2] == "0X" || c[:2] == "U+" || c[:2] == "u+" {
 						var cc int
 						fmt.Sscanf(c[2:], "%x", &cc)
-						items = append(items, fmt.Sprintf("%c", cc))
+						items = append(items, string(cc))
 					} else {
 						cc, _ := strconv.Atoi(c)
-						items = append(items, fmt.Sprintf("%c", cc))
+						items = append(items, string(cc))
 					}
 				}
 			} else if state == EQUI || state == PAREN {

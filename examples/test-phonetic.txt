@@ -5,3 +5,4 @@ T	a[bc:d]e	a[bc::d]e
 T	a[bc:d]e	abc:de
 T	a[bc:d]e	a[bcd]e
 T	ab:.c	ab.:c
+T	a[b:cd]e	a[b:c]de

@@ -11,6 +11,47 @@ import (
 	"utf8"
 )
 
+// The context acts as global store for a single request
+
+type Context struct {
+	dst  [][]float32 // for Levenshtein()
+	size int         //
+
+	adst  [][]cell // for LevenshteinAlignment()
+	asize int      //
+
+	substvalue float32
+	indelvalue float32
+	modvalue   float32
+
+	paren     map[string]string
+	paren2    map[string]string
+	equi      map[string]string
+	mods      map[string]bool
+	indelSets []set
+	substSets []set
+}
+
+func NewContext() *Context {
+	return &Context{
+		dst:  nil,
+		size: -1,
+
+		adst:  nil,
+		asize: -1,
+
+		substvalue: 2.0,
+		indelvalue: 1.0,
+		modvalue:   0.5,
+
+		paren:     make(map[string]string),
+		paren2:    make(map[string]string),
+		equi:      make(map[string]string),
+		mods:      make(map[string]bool),
+		indelSets: make([]set, 0, 50),
+		substSets: make([]set, 0, 50)}
+}
+
 type StateType int
 
 const (
@@ -25,36 +66,6 @@ const (
 type set struct {
 	f float32
 	s map[string]bool
-}
-
-var (
-	dst   [][]float32
-	size  int = 0
-	adst  [][]cell
-	asize int = 0
-
-	substvalue float32
-	indelvalue float32
-	modvalue   float32
-
-	paren     map[string]string
-	paren2    map[string]string
-	equi      map[string]string
-	mods      map[string]bool
-	indelSets []set
-	substSets []set
-)
-
-func reset() {
-	paren = make(map[string]string)
-	paren2 = make(map[string]string)
-	equi = make(map[string]string)
-	mods = make(map[string]bool)
-	substvalue = 2.0
-	indelvalue = 1.0
-	modvalue = 0.5
-	indelSets = make([]set, 0, 50)
-	substSets = make([]set, 0, 50)
 }
 
 type cell struct {
@@ -91,9 +102,8 @@ func min3float32(f1, f2, f3 float32) float32 {
 }
 
 func kgv(l1, l2 int) int {
-	var ll1, ll2 int
-	ll1 = l1
-	ll2 = l2
+	ll1 := l1
+	ll2 := l2
 	for {
 		if ll1 == ll2 {
 			return ll1
@@ -108,7 +118,7 @@ func kgv(l1, l2 int) int {
 	return 0
 }
 
-func diff(i1, i2 token) float32 {
+func diff(q *Context, i1, i2 token) float32 {
 	if i1.head == "" || i2.head == "" {
 		var i string
 		if i1.head != "" {
@@ -116,29 +126,28 @@ func diff(i1, i2 token) float32 {
 		} else {
 			i = i2.head
 		}
-		for _, j := range indelSets {
+		for _, j := range q.indelSets {
 			if j.s[i] {
 				return j.f
 			}
 		}
-		return indelvalue
+		return q.indelvalue
 	}
-	// TODO: complex comparison of tokens
 	if i1.head == i2.head {
 		if i1.mods == i2.mods {
 			return 0.0
 		}
-		return modvalue
+		return q.modvalue
 	}
-	for _, i := range substSets {
+	for _, i := range q.substSets {
 		if i.s[i1.head] && i.s[i2.head] {
 			return i.f
 		}
 	}
-	return substvalue
+	return q.substvalue
 }
 
-func Levenshtein(s1, s2 []token) float32 {
+func Levenshtein(q *Context, s1, s2 []token) float32 {
 	var l1, l2, x, y int
 	var aboveleft, above, left float32
 	var xc, yc token
@@ -146,26 +155,26 @@ func Levenshtein(s1, s2 []token) float32 {
 	l1 = len(s1)
 	l2 = len(s2)
 
-	if m := max2int(l1, l2); m > size {
-		size = m * 2
-		dst = make([][]float32, size+1)
-		for i := 0; i <= size; i++ {
-			dst[i] = make([]float32, size+1)
+	if m := max2int(l1, l2); m > q.size {
+		q.size = m * 2
+		q.dst = make([][]float32, q.size+1)
+		for i := 0; i <= q.size; i++ {
+			q.dst[i] = make([]float32, q.size+1)
 		}
 	}
 
 	nul := token{head: ""}
 
-	dst[0][0] = 0
+	q.dst[0][0] = 0
 	x = 0
 	for _, xc = range s2 {
 		x++
-		dst[x][0] = dst[x-1][0] + diff(nul, xc)
+		q.dst[x][0] = q.dst[x-1][0] + diff(q, nul, xc)
 	}
 	y = 0
 	for _, yc = range s1 {
 		y++
-		dst[0][y] = dst[0][y-1] + diff(nul, yc)
+		q.dst[0][y] = q.dst[0][y-1] + diff(q, nul, yc)
 	}
 
 	x = 0
@@ -174,17 +183,17 @@ func Levenshtein(s1, s2 []token) float32 {
 		y = 0
 		for _, yc = range s1 {
 			y++
-			aboveleft = dst[x-1][y-1] + diff(yc, xc)
-			above = dst[x][y-1] + diff(yc, nul)
-			left = dst[x-1][y] + diff(nul, xc)
-			dst[x][y] = min3float32(aboveleft, above, left)
+			aboveleft = q.dst[x-1][y-1] + diff(q, yc, xc)
+			above = q.dst[x][y-1] + diff(q, yc, nul)
+			left = q.dst[x-1][y] + diff(q, nul, xc)
+			q.dst[x][y] = min3float32(aboveleft, above, left)
 		}
 	}
 
-	return dst[l2][l1] / float32(l1+l2)
+	return q.dst[l2][l1] / float32(l1+l2)
 }
 
-func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
+func LevenshteinAlignment(q *Context, w http.ResponseWriter, s1, s2 []token) {
 	var l1, l2, x, y int
 	var f, aboveleft, above, left float32
 	var xc, yc token
@@ -192,11 +201,11 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 	l1 = len(s1)
 	l2 = len(s2)
 
-	if m := max2int(l1, l2); m > asize {
-		asize = m * 2
-		adst = make([][]cell, asize+1)
-		for i := 0; i <= asize; i++ {
-			adst[i] = make([]cell, asize+1)
+	if m := max2int(l1, l2); m > q.asize {
+		q.asize = m * 2
+		q.adst = make([][]cell, q.asize+1)
+		for i := 0; i <= q.asize; i++ {
+			q.adst[i] = make([]cell, q.asize+1)
 		}
 	}
 
@@ -204,22 +213,22 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 
 	for x = 0; x <= l2; x++ {
 		for y = 0; y <= l1; y++ {
-			adst[x][y].above, adst[x][y].left, adst[x][y].aboveleft = false, false, false
+			q.adst[x][y].above, q.adst[x][y].left, q.adst[x][y].aboveleft = false, false, false
 		}
 	}
 
-	adst[0][0].f = 0
+	q.adst[0][0].f = 0
 	x = 0
 	for _, xc = range s2 {
 		x++
-		adst[x][0].f = adst[x-1][0].f + diff(nul, xc)
-		adst[x][0].left = true
+		q.adst[x][0].f = q.adst[x-1][0].f + diff(q, nul, xc)
+		q.adst[x][0].left = true
 	}
 	y = 0
 	for _, yc = range s1 {
 		y++
-		adst[0][y].f = adst[0][y-1].f + diff(nul, yc)
-		adst[0][y].above = true
+		q.adst[0][y].f = q.adst[0][y-1].f + diff(q, nul, yc)
+		q.adst[0][y].above = true
 	}
 
 	x = 0
@@ -228,21 +237,21 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 		y = 0
 		for _, yc = range s1 {
 			y++
-			aboveleft = adst[x-1][y-1].f + diff(yc, xc)
-			above = adst[x][y-1].f + diff(yc, nul)
-			left = adst[x-1][y].f + diff(nul, xc)
+			aboveleft = q.adst[x-1][y-1].f + diff(q, yc, xc)
+			above = q.adst[x][y-1].f + diff(q, yc, nul)
+			left = q.adst[x-1][y].f + diff(q, nul, xc)
 			if aboveleft <= above && aboveleft <= left {
-				adst[x][y].f = aboveleft
-				adst[x][y].aboveleft = true
+				q.adst[x][y].f = aboveleft
+				q.adst[x][y].aboveleft = true
 				continue
 			}
 			if above <= left {
-				adst[x][y].f = above
-				adst[x][y].above = true
+				q.adst[x][y].f = above
+				q.adst[x][y].above = true
 				continue
 			}
-			adst[x][y].f = left
-			adst[x][y].left = true
+			q.adst[x][y].f = left
+			q.adst[x][y].left = true
 		}
 	}
 
@@ -255,15 +264,15 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 		if x == 0 && y == 0 {
 			return
 		}
-		line3[ln] = adst[x][y].f
-		if adst[x][y].aboveleft {
+		line3[ln] = q.adst[x][y].f
+		if q.adst[x][y].aboveleft {
 			line1[ln] = html.EscapeString(s1[y-1].str)
 			line2[ln] = html.EscapeString(s2[x-1].str)
 			ln++
 			F(x-1, y-1)
 			return
 		}
-		if adst[x][y].above {
+		if q.adst[x][y].above {
 			line1[ln] = html.EscapeString(s1[y-1].str)
 			line2[ln] = ""
 			ln++
@@ -303,11 +312,11 @@ func LevenshteinAlignment(w http.ResponseWriter, s1, s2 []token) {
 		}
 
 	}
-	fmt.Fprintf(w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", adst[l2][l1].f, l1+l2, adst[l2][l1].f/float32(l1+l2))
+	fmt.Fprintf(w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.adst[l2][l1].f, l1+l2, q.adst[l2][l1].f/float32(l1+l2))
 
 }
 
-func editDistance(i1, i2 item) float32 {
+func editDistance(q *Context, i1, i2 item) float32 {
 	// 0 * n
 	if i1.n == 0 || i2.n == 0 {
 		return float32(math.NaN())
@@ -315,7 +324,7 @@ func editDistance(i1, i2 item) float32 {
 
 	// 1 * 1
 	if i1.n == 1 && i2.n == 1 {
-		return Levenshtein(i1.w[0], i2.w[0])
+		return Levenshtein(q, i1.w[0], i2.w[0])
 	}
 
 	// 1 * n
@@ -326,7 +335,7 @@ func editDistance(i1, i2 item) float32 {
 		var sum float32
 		sum = 0.0
 		for i := 0; i < i2.n; i++ {
-			sum += Levenshtein(i1.w[0], i2.w[i])
+			sum += Levenshtein(q, i1.w[0], i2.w[i])
 		}
 		return sum / float32(i2.n)
 	}
@@ -340,7 +349,7 @@ func editDistance(i1, i2 item) float32 {
 	}
 	for i := 0; i < n1; i++ {
 		for j := 0; j < n2; j++ {
-			d[i][j] = Levenshtein(i1.w[i], i2.w[j])
+			d[i][j] = Levenshtein(q, i1.w[i], i2.w[j])
 		}
 	}
 	l := kgv(n1, n2)
@@ -370,7 +379,7 @@ func editDistance(i1, i2 item) float32 {
 
 }
 
-func itemize(s string) item {
+func itemize(q *Context, s string) item {
 	stringlist := make([]string, 0, strings.Count(s, " / ")+1)
 	for _, i := range strings.Split(s, " / ") {
 		i := strings.TrimSpace(i)
@@ -381,12 +390,12 @@ func itemize(s string) item {
 	n := len(stringlist)
 	it := item{n: n, w: make([][]token, 0, n)}
 	for i := 0; i < n; i++ {
-		it.w = append(it.w, tokenize(stringlist[i]))
+		it.w = append(it.w, tokenize(q, stringlist[i]))
 	}
 	return it
 }
 
-func tokenize(s string) []token {
+func tokenize(q *Context, s string) []token {
 	max := len(s)
 	tokens := make([]token, 0, max)
 	parlist := make([]string, 0, max)
@@ -416,22 +425,22 @@ func tokenize(s string) []token {
 	}
 	for _, c := range strings.Split(s, "") {
 		cc := c
-		if equi[c] != "" {
-			cc = equi[c]
+		if q.equi[c] != "" {
+			cc = q.equi[c]
 		}
-		if paren[cc] != "" {
+		if q.paren[cc] != "" {
 			finish()
 			parlist = append(parlist, cc)
 			str += c
-		} else if paren2[cc] != "" {
-			if len(parlist) > 0 && parlist[len(parlist)-1] == paren2[cc] {
+		} else if q.paren2[cc] != "" {
+			if len(parlist) > 0 && parlist[len(parlist)-1] == q.paren2[cc] {
 
 				// pop parlist
 				parlist = parlist[:len(parlist)-1]
 
 			}
 			str += c
-		} else if mods[cc] {
+		} else if q.mods[cc] {
 			modlist = append(modlist, cc)
 			str += c
 		} else {
@@ -454,7 +463,7 @@ func tokenize(s string) []token {
 	return tokens
 }
 
-func setup(lines []string) {
+func setup(q *Context, lines []string) {
 
 	var f float32
 	items := make([]string, 0, 300)
@@ -465,30 +474,30 @@ func setup(lines []string) {
 		if state == EQUI {
 			for _, c := range items {
 				chrs := strings.Split(c, "")
-				equi[chrs[0]] = chrs[1]
+				q.equi[chrs[0]] = chrs[1]
 			}
 		} else if state == PAREN {
 			for _, c := range items {
 				chrs := strings.Split(c, "")
-				paren[chrs[0]] = chrs[1]
-				paren2[chrs[1]] = chrs[0]
+				q.paren[chrs[0]] = chrs[1]
+				q.paren2[chrs[1]] = chrs[0]
 			}
 		} else if state == MOD {
 			for _, i := range items {
-				mods[i] = true
+				q.mods[i] = true
 			}
 		} else if state == INDEL {
 			m := make(map[string]bool)
 			for _, i := range items {
 				m[i] = true
 			}
-			indelSets = append(indelSets, set{f: f, s: m})
+			q.indelSets = append(q.indelSets, set{f: f, s: m})
 		} else if state == SUBST {
 			m := make(map[string]bool)
 			for _, i := range items {
 				m[i] = true
 			}
-			substSets = append(substSets, set{f: f, s: m})
+			q.substSets = append(q.substSets, set{f: f, s: m})
 		}
 
 		state = NULL
@@ -502,9 +511,9 @@ func setup(lines []string) {
 		if strings.HasPrefix(line, "DEFAULTS") {
 			finish()
 			a := strings.Fields(line)
-			substvalue, _ = strconv.Atof32(a[1])
-			indelvalue, _ = strconv.Atof32(a[2])
-			modvalue, _ = strconv.Atof32(a[3])
+			q.substvalue, _ = strconv.Atof32(a[1])
+			q.indelvalue, _ = strconv.Atof32(a[2])
+			q.modvalue, _ = strconv.Atof32(a[3])
 		} else if line == "EQUI" {
 			finish()
 			state = EQUI

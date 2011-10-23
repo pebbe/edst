@@ -18,17 +18,17 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	deflines, deferror := gettextfile(r, "def")
 	choice := r.FormValue("choice")
 
-	reset()
+	q := NewContext()
 
 	if deferror == nil {
-		setup(deflines)
+		setup(q, deflines)
 	}
 
 	switch choice {
 	case "edst":
-		doEdst(w, datalines, dataerror)
+		doEdst(q, w, datalines, dataerror)
 	case "alig":
-		doAlign(w, datalines, dataerror)
+		doAlign(q, w, datalines, dataerror)
 	}
 }
 
@@ -46,7 +46,7 @@ func gettextfile(r *http.Request, key string) ([]string, os.Error) {
 	return strings.SplitAfter(s, "\n"), nil
 }
 
-func doEdst(w http.ResponseWriter, lines []string, error os.Error) {
+func doEdst(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
 	w.Header().Add("Content-type", "text/plain; charset=utf-8")
 
 	// output BOM for UTF-8
@@ -98,11 +98,11 @@ func doEdst(w http.ResponseWriter, lines []string, error os.Error) {
 
 		items := make([]item, len(cells)-1)
 		for i := 0; i < len(cells)-1; i++ {
-			items[i] = itemize(cells[i+1]) // skip the first cell, that's a label
+			items[i] = itemize(q, cells[i+1]) // skip the first cell, that's a label
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				fmt.Fprintf(w, "\t%.7f", editDistance(items[i], items[j]))
+				fmt.Fprintf(w, "\t%.7f", editDistance(q, items[i], items[j]))
 				// fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
 			}
 		}
@@ -112,7 +112,7 @@ func doEdst(w http.ResponseWriter, lines []string, error os.Error) {
 
 }
 
-func doAlign(w http.ResponseWriter, lines []string, error os.Error) {
+func doAlign(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
 	fmt.Fprint(w, `<html>
   <head>
     <title>Alignments</title>
@@ -127,11 +127,11 @@ func doAlign(w http.ResponseWriter, lines []string, error os.Error) {
 	}
 
 	/*
-	 fmt.Fprintf(w, "<pre>\nequi:\n%v\n</pre>\n", equi)
-	 fmt.Fprintf(w, "<pre>\nparen:\n%v\n%v\n</pre>\n", paren, paren2)
-	 fmt.Fprintf(w, "<pre>\nmods:\n%v\n</pre>\n", mods)
-	 fmt.Fprintf(w, "<pre>\nindel:\n%v\n</pre>\n", indelSets)
-	 fmt.Fprintf(w, "<pre>\nsubst:\n%v\n</pre>\n", substSets)
+		fmt.Fprintf(w, "<pre>\nequi:\n%v\n</pre>\n", q.equi)
+		fmt.Fprintf(w, "<pre>\nparen:\n%v\n%v\n</pre>\n", q.paren, q.paren2)
+		fmt.Fprintf(w, "<pre>\nmods:\n%v\n</pre>\n", q.mods)
+		fmt.Fprintf(w, "<pre>\nindel:\n%v\n</pre>\n", q.indelSets)
+		fmt.Fprintf(w, "<pre>\nsubst:\n%v\n</pre>\n", q.substSets)
 	*/
 
 	// do the data header
@@ -166,14 +166,14 @@ func doAlign(w http.ResponseWriter, lines []string, error os.Error) {
 
 		items := make([]item, len(cells))
 		for i := 0; i < len(cells); i++ {
-			items[i] = itemize(cells[i])
+			items[i] = itemize(q, cells[i])
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
 				fmt.Fprintf(w, "<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
 				for _, iti := range items[i].w {
 					for _, itj := range items[j].w {
-						LevenshteinAlignment(w, iti, itj)
+						LevenshteinAlignment(q, w, iti, itj)
 					}
 				}
 			}

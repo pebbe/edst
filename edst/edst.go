@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html"
 	"http"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -18,53 +17,84 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	deflines, deferror := gettextfile(r, "def")
 	choice := r.FormValue("choice")
 
-	q := NewContext()
+	q := NewContext(w)
 
-	if deferror == nil {
-		setup(q, deflines)
+	err1 := checkData(q, datalines, dataerror)
+	err2 := setup(q, deflines, deferror)
+	if err1 || err2 {
+		return
 	}
 
 	switch choice {
 	case "edst":
-		doEdst(q, w, datalines, dataerror)
+		doEdst(q, datalines)
 	case "alig":
-		doAlign(q, w, datalines, dataerror)
+		doAlign(q, datalines)
 	}
 }
 
-func gettextfile(r *http.Request, key string) ([]string, os.Error) {
-	// get data as lines of string, properly decoded
-	f, _, e := r.FormFile(key)
-	if e != nil {
-		return nil, e
-	}
-	d, e := ioutil.ReadAll(f)
-	if e != nil {
-		return nil, e
-	}
-	s, _ := decode(d) // from []byte to string
-	if strings.Index(s, "\n") < 0 && strings.Index(s, "\r") >= 0 {
-		return strings.SplitAfter(s, "\r"), nil
-	}
-	return strings.SplitAfter(s, "\n"), nil
-}
+func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
+	err = false
 
-func doEdst(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
-	w.Header().Add("Content-type", "text/plain; charset=utf-8")
+	writeError := func(lineno int, msg string) {
+		setTextPlain(q)
+		if lineno < 0 {
+			fmt.Fprintln(q.w, "Data file:", msg)
+		} else {
+			fmt.Fprintf(q.w, "Data file, line %d: %v\n", lineno+1, msg)
+		}
+		err = true
+	}
 
-	// output BOM for UTF-8
-	fmt.Fprintf(w, "%c", 0xfeff)
-
-	if error != nil {
-		fmt.Fprintf(w, "Error data file\n%v\n", error)
+	if dataerror != nil {
+		writeError(-1, dataerror.String())
 		return
 	}
+
+	idx := 0
+	nlines := len(datalines)
+	for {
+		if idx == nlines {
+			writeError(idx, "No data in file")
+			return
+		}
+		if s := strings.TrimSpace(datalines[idx]); s == "" || s[:1] == "#" {
+			idx++
+		} else {
+			break
+		}
+	}
+	a := strings.Split(datalines[idx], "\t")
+	nCols := len(a)
+	if strings.TrimSpace(a[0]) == "" {
+		nCols--
+	}
+	if nCols < 2 {
+		writeError(idx, "No column labels found")
+		return
+	}
+
+	for idx++; idx < nlines; idx++ {
+		if s := strings.TrimSpace(datalines[idx]); s == "" || s[:1] == "#" {
+			continue
+		}
+		cells := strings.Split(datalines[idx], "\t")
+		if n := len(cells) - 1; n != nCols {
+			writeError(idx, fmt.Sprintf("Found %d data cells, should be %d", n, nCols))
+		}
+	}
+
+	return
+}
+
+func doEdst(q *Context, lines []string) {
+	setTextPlain(q)
 
 	// do the data header
 	idx := 0
 	for {
 		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
-			fmt.Fprintf(w, lines[idx])
+			fmt.Fprintf(q.w, lines[idx])
 			idx++
 		} else {
 			break
@@ -75,19 +105,19 @@ func doEdst(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
 		xlabs = xlabs[1:]
 	}
 	for _, xlab := range xlabs {
-		fmt.Fprintf(w, "\t%v", strings.TrimSpace(xlab))
+		fmt.Fprintf(q.w, "\t%v", strings.TrimSpace(xlab))
 	}
 	for i := 0; i < len(xlabs)-1; i++ {
 		for j := i + 1; j < len(xlabs); j++ {
-			fmt.Fprintf(w, "\t%v:%v", strings.TrimSpace(xlabs[i]), strings.TrimSpace(xlabs[j]))
+			fmt.Fprintf(q.w, "\t%v:%v", strings.TrimSpace(xlabs[i]), strings.TrimSpace(xlabs[j]))
 		}
 	}
-	fmt.Fprintln(w)
+	fmt.Fprintln(q.w)
 
 	// do the rest of the data
 	for idx++; idx < len(lines); idx++ {
 		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
-			fmt.Fprintf(w, lines[idx])
+			fmt.Fprintf(q.w, lines[idx])
 			continue
 		}
 
@@ -95,7 +125,7 @@ func doEdst(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
 
 		sep := ""
 		for _, i := range cells {
-			fmt.Fprintf(w, "%v%v", sep, strings.TrimSpace(i))
+			fmt.Fprintf(q.w, "%v%v", sep, strings.TrimSpace(i))
 			sep = "\t"
 		}
 
@@ -105,18 +135,18 @@ func doEdst(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				fmt.Fprintf(w, "\t%.7f", editDistance(q, items[i], items[j]))
-				// fmt.Fprintf(w, "\n\t%v\n\t%v", items[i], items[j])
+				fmt.Fprintf(q.w, "\t%.7f", editDistance(q, items[i], items[j]))
+				// fmt.Fprintf(q.w, "\n\t%v\n\t%v", items[i], items[j])
 			}
 		}
 
-		fmt.Fprintln(w)
+		fmt.Fprintln(q.w)
 	}
 
 }
 
-func doAlign(q *Context, w http.ResponseWriter, lines []string, error os.Error) {
-	fmt.Fprint(w, `<html>
+func doAlign(q *Context, lines []string) {
+	fmt.Fprint(q.w, `<html>
   <head>
     <title>Alignments</title>
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -124,17 +154,12 @@ func doAlign(q *Context, w http.ResponseWriter, lines []string, error os.Error) 
   <body>
 `)
 
-	if error != nil {
-		fmt.Fprintf(w, "<h1>Error data file</h1>\n<div>%s</div>\n</body>\n</html>\n", html.EscapeString(error.String()))
-		return
-	}
-
 	/*
-		fmt.Fprintf(w, "<pre>\nequi:\n%v\n</pre>\n", q.equi)
-		fmt.Fprintf(w, "<pre>\nparen:\n%v\n%v\n</pre>\n", q.paren, q.paren2)
-		fmt.Fprintf(w, "<pre>\nmods:\n%v\n</pre>\n", q.mods)
-		fmt.Fprintf(w, "<pre>\nindel:\n%v\n</pre>\n", q.indelSets)
-		fmt.Fprintf(w, "<pre>\nsubst:\n%v\n</pre>\n", q.substSets)
+		fmt.Fprintf(q.w, "<pre>\nequi:\n%v\n</pre>\n", q.equi)
+		fmt.Fprintf(q.w, "<pre>\nparen:\n%v\n%v\n</pre>\n", q.paren, q.paren2)
+		fmt.Fprintf(q.w, "<pre>\nmods:\n%v\n</pre>\n", q.mods)
+		fmt.Fprintf(q.w, "<pre>\nindel:\n%v\n</pre>\n", q.indelSets)
+		fmt.Fprintf(q.w, "<pre>\nsubst:\n%v\n</pre>\n", q.substSets)
 	*/
 
 	// do the data header
@@ -165,7 +190,7 @@ func doAlign(q *Context, w http.ResponseWriter, lines []string, error os.Error) 
 		ylab := cells[0]
 		cells = cells[1:]
 
-		fmt.Fprintf(w, "<h2>%s</h2>\n", html.EscapeString(ylab))
+		fmt.Fprintf(q.w, "<h2>%s</h2>\n", html.EscapeString(ylab))
 
 		items := make([]item, len(cells))
 		for i := 0; i < len(cells); i++ {
@@ -173,10 +198,10 @@ func doAlign(q *Context, w http.ResponseWriter, lines []string, error os.Error) 
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				fmt.Fprintf(w, "<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
+				fmt.Fprintf(q.w, "<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
 				for _, iti := range items[i].w {
 					for _, itj := range items[j].w {
-						LevenshteinAlignment(q, w, iti, itj)
+						LevenshteinAlignment(q, iti, itj)
 					}
 				}
 			}
@@ -184,6 +209,6 @@ func doAlign(q *Context, w http.ResponseWriter, lines []string, error os.Error) 
 
 	}
 
-	fmt.Fprintln(w, "</body>\n</html>")
+	fmt.Fprintln(q.w, "</body>\n</html>")
 
 }

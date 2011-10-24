@@ -3,54 +3,13 @@ package edst
 import (
 	"fmt"
 	"html"
-	"http"
 	"math"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"utf8"
 )
-
-// The context acts as global store for a single request
-
-type Context struct {
-	dst  [][]float32 // for Levenshtein()
-	size int         //
-
-	adst  [][]cell // for LevenshteinAlignment()
-	asize int      //
-
-	substvalue float32
-	indelvalue float32
-	modvalue   float32
-
-	paren     map[string]string
-	paren2    map[string]string
-	equi      map[string]string
-	mods      map[string]bool
-	indelSets []set
-	substSets []set
-}
-
-func NewContext() *Context {
-	return &Context{
-		dst:  nil,
-		size: -1,
-
-		adst:  nil,
-		asize: -1,
-
-		substvalue: 2.0,
-		indelvalue: 1.0,
-		modvalue:   0.5,
-
-		paren:     make(map[string]string),
-		paren2:    make(map[string]string),
-		equi:      make(map[string]string),
-		mods:      make(map[string]bool),
-		indelSets: make([]set, 0, 50),
-		substSets: make([]set, 0, 50)}
-}
 
 type StateType int
 
@@ -193,7 +152,7 @@ func Levenshtein(q *Context, s1, s2 []token) float32 {
 	return q.dst[l2][l1] / float32(l1+l2)
 }
 
-func LevenshteinAlignment(q *Context, w http.ResponseWriter, s1, s2 []token) {
+func LevenshteinAlignment(q *Context, s1, s2 []token) {
 	var l1, l2, x, y int
 	var f, aboveleft, above, left float32
 	var xc, yc token
@@ -287,32 +246,32 @@ func LevenshteinAlignment(q *Context, w http.ResponseWriter, s1, s2 []token) {
 	}
 	F(l2, l1)
 
-	fmt.Fprintf(w, "<table class=\"align\"><tr class=\"txt\">\n")
+	fmt.Fprintf(q.w, "<table class=\"align\"><tr class=\"txt\">\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line1[i] == " " {
 			line1[i] = "<span class=\"space\">SP</span>"
 		}
-		fmt.Fprintf(w, "<td>&nbsp;%s&nbsp;</td>\n", line1[i])
+		fmt.Fprintf(q.w, "<td>&nbsp;%s&nbsp;</td>\n", line1[i])
 	}
-	fmt.Fprintf(w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr class=\"txt\">\n")
+	fmt.Fprintf(q.w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr class=\"txt\">\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line2[i] == " " {
 			line2[i] = "<span class=\"space\">SP</span>"
 		}
-		fmt.Fprintf(w, "<td>&nbsp;%s&nbsp;</td>\n", line2[i])
+		fmt.Fprintf(q.w, "<td>&nbsp;%s&nbsp;</td>\n", line2[i])
 	}
 	f = 0.0
-	fmt.Fprintf(w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr>\n")
+	fmt.Fprintf(q.w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr>\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line3[i] != f {
-			fmt.Fprintf(w, "<td>%g</td>\n", line3[i]-f)
+			fmt.Fprintf(q.w, "<td>%g</td>\n", line3[i]-f)
 			f = line3[i]
 		} else {
-			fmt.Fprintf(w, "<td>&nbsp;</td>\n")
+			fmt.Fprintf(q.w, "<td>&nbsp;</td>\n")
 		}
 
 	}
-	fmt.Fprintf(w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.adst[l2][l1].f, l1+l2, q.adst[l2][l1].f/float32(l1+l2))
+	fmt.Fprintf(q.w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.adst[l2][l1].f, l1+l2, q.adst[l2][l1].f/float32(l1+l2))
 
 }
 
@@ -450,7 +409,7 @@ func tokenize(q *Context, s string) []token {
 
 			// copy parlist into modlist
 			modlist = modlist[:0]
-			for _,i := range(parlist) {
+			for _, i := range parlist {
 				modlist = append(modlist, i)
 			}
 
@@ -463,11 +422,26 @@ func tokenize(q *Context, s string) []token {
 	return tokens
 }
 
-func setup(q *Context, lines []string) {
+func setup(q *Context, lines []string, e os.Error) (err bool) {
+
+	if e != nil {
+		return false
+	}
 
 	var f float32
+	err = false
 	items := make([]string, 0, 300)
 	state := NULL
+
+	writeError := func(lineno int, msg string) {
+		setTextPlain(q)
+		if lineno < 0 {
+			fmt.Fprintln(q.w, "Definition file:", msg)
+		} else {
+			fmt.Fprintf(q.w, "Definition file, line %d: %v\n", lineno+1, msg)
+		}
+		err = true
+	}
 
 	finish := func() {
 
@@ -503,7 +477,7 @@ func setup(q *Context, lines []string) {
 		state = NULL
 	}
 
-	for _, line := range lines {
+	for lineno, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || line[:1] == "#" {
 			continue
@@ -511,9 +485,21 @@ func setup(q *Context, lines []string) {
 		if strings.HasPrefix(line, "DEFAULTS") {
 			finish()
 			a := strings.Fields(line)
-			q.substvalue, _ = strconv.Atof32(a[1])
-			q.indelvalue, _ = strconv.Atof32(a[2])
-			q.modvalue, _ = strconv.Atof32(a[3])
+			if len(a) != 4 {
+				writeError(lineno, "Wrong number of arguments")
+			} else {
+				values := make([]float32, 3)
+				var e os.Error
+				for i := 0; i < 3; i++ {
+					values[i], e = strconv.Atof32(a[i+1])
+					if e != nil {
+						writeError(lineno, e.String())
+					}
+				}
+				q.substvalue = values[0]
+				q.indelvalue = values[1]
+				q.modvalue = values[2]
+			}
 		} else if line == "EQUI" {
 			finish()
 			state = EQUI
@@ -526,17 +512,25 @@ func setup(q *Context, lines []string) {
 			finish()
 			state = MOD
 			items = items[:0]
-		} else if strings.HasPrefix(line, "INDEL") {
+		} else if strings.HasPrefix(line, "INDEL") || strings.HasPrefix(line, "SUBST") {
 			finish()
 			a := strings.Fields(line)
-			f, _ = strconv.Atof32(a[1])
-			state = INDEL
-			items = items[:0]
-		} else if strings.HasPrefix(line, "SUBST") {
-			finish()
-			a := strings.Fields(line)
-			f, _ = strconv.Atof32(a[1])
-			state = SUBST
+			f = 0.0
+			if len(a) != 2 {
+				writeError(lineno, "Wrong number of arguments")
+			} else {
+				ff, e := strconv.Atof32(a[1])
+				if e != nil {
+					writeError(lineno, e.String())
+				} else {
+					f = ff
+				}
+			}
+			if strings.HasPrefix(line, "INDEL") {
+				state = INDEL
+			} else {
+				state = SUBST
+			}
 			items = items[:0]
 		} else {
 			if state == MOD || state == INDEL || state == SUBST {
@@ -546,21 +540,35 @@ func setup(q *Context, lines []string) {
 						items = append(items, c)
 					} else if c[:2] == "0x" || c[:2] == "0X" || c[:2] == "U+" || c[:2] == "u+" {
 						var cc int
-						fmt.Sscanf(c[2:], "%x", &cc)
-						items = append(items, string(cc))
+						_, e := fmt.Sscanf(c[2:], "%x", &cc)
+						if e != nil {
+							writeError(lineno, fmt.Sprintf("\"%s\" is not a valid character value", c))
+						} else {
+							items = append(items, string(cc))
+						}
 					} else {
-						cc, _ := strconv.Atoi(c)
-						items = append(items, string(cc))
+						cc, e := strconv.Atoi(c)
+						if e != nil {
+							writeError(lineno, fmt.Sprintf("\"%s\" is not a valid character value", c))
+						} else {
+							items = append(items, string(cc))
+						}
 					}
 				}
 			} else if state == EQUI || state == PAREN {
 				a := strings.Fields(line)
 				for _, c := range a {
-					items = append(items, c)
+					if utf8.RuneCountInString(c) != 2 {
+						writeError(lineno, fmt.Sprintf("Invalid pair \"%v\", should be two characters", c))
+					} else {
+						items = append(items, c)
+					}
 				}
+			} else {
+				writeError(lineno, "Invalid line")
 			}
 		}
 	}
 	finish()
-
+	return
 }

@@ -1,5 +1,29 @@
 package edst
 
+import (
+	"http"
+	"io/ioutil"
+	"os"
+	"strings"
+)
+
+func gettextfile(r *http.Request, key string) ([]string, os.Error) {
+	// get data as lines of string, properly decoded
+	f, _, e := r.FormFile(key)
+	if e != nil {
+		return nil, e
+	}
+	d, e := ioutil.ReadAll(f)
+	if e != nil {
+		return nil, e
+	}
+	s, _ := decode(d) // from []byte to string
+	if strings.Index(s, "\n") < 0 && strings.Index(s, "\r") >= 0 {
+		return strings.SplitAfter(s, "\r"), nil
+	}
+	return strings.SplitAfter(s, "\n"), nil
+}
+
 func decode(b []byte) (data string, charset string) {
 	// BOM-UTF-8
 	if b[0] == 0xef && b[1] == 0xbb && b[2] == 0xbf {

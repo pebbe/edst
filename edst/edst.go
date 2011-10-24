@@ -43,6 +43,9 @@ func gettextfile(r *http.Request, key string) ([]string, os.Error) {
 		return nil, e
 	}
 	s, _ := decode(d) // from []byte to string
+	if strings.Index(s, "\n") < 0 && strings.Index(s, "\r") >= 0 {
+		return strings.SplitAfter(s, "\r"), nil
+	}
 	return strings.SplitAfter(s, "\n"), nil
 }
 

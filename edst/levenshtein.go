@@ -43,21 +43,11 @@ type item struct {
 	w [][]token // a list of n words, each a list of tokens
 }
 
-func max2int(i1, i2 int) int {
+func maxint(i1, i2 int) int {
 	if i1 > i2 {
 		return i1
 	}
 	return i2
-}
-
-func min3float32(f1, f2, f3 float32) float32 {
-	if f1 < f2 && f1 < f3 {
-		return f1
-	}
-	if f2 < f3 {
-		return f2
-	}
-	return f3
 }
 
 func kgv(l1, l2 int) int {
@@ -106,53 +96,7 @@ func diff(q *Context, i1, i2 token) float32 {
 	return q.substvalue
 }
 
-func Levenshtein(q *Context, s1, s2 []token) float32 {
-	var l1, l2, x, y int
-	var aboveleft, above, left float32
-	var xc, yc token
-
-	l1 = len(s1)
-	l2 = len(s2)
-
-	if m := max2int(l1, l2); m > q.size {
-		q.size = m * 2
-		q.dst = make([][]float32, q.size+1)
-		for i := 0; i <= q.size; i++ {
-			q.dst[i] = make([]float32, q.size+1)
-		}
-	}
-
-	nul := token{head: ""}
-
-	q.dst[0][0] = 0
-	x = 0
-	for _, xc = range s2 {
-		x++
-		q.dst[x][0] = q.dst[x-1][0] + diff(q, nul, xc)
-	}
-	y = 0
-	for _, yc = range s1 {
-		y++
-		q.dst[0][y] = q.dst[0][y-1] + diff(q, nul, yc)
-	}
-
-	x = 0
-	for _, xc = range s2 {
-		x++
-		y = 0
-		for _, yc = range s1 {
-			y++
-			aboveleft = q.dst[x-1][y-1] + diff(q, yc, xc)
-			above = q.dst[x][y-1] + diff(q, yc, nul)
-			left = q.dst[x-1][y] + diff(q, nul, xc)
-			q.dst[x][y] = min3float32(aboveleft, above, left)
-		}
-	}
-
-	return q.dst[l2][l1] / float32(l1+l2)
-}
-
-func LevenshteinAlignment(q *Context, s1, s2 []token) {
+func Levenshtein(q *Context, s1, s2 []token, wantAlign bool) float32 {
 	var l1, l2, x, y int
 	var f, aboveleft, above, left float32
 	var xc, yc token
@@ -160,11 +104,11 @@ func LevenshteinAlignment(q *Context, s1, s2 []token) {
 	l1 = len(s1)
 	l2 = len(s2)
 
-	if m := max2int(l1, l2); m > q.asize {
-		q.asize = m * 2
-		q.adst = make([][]cell, q.asize+1)
-		for i := 0; i <= q.asize; i++ {
-			q.adst[i] = make([]cell, q.asize+1)
+	if m := maxint(l1, l2); m > q.size {
+		q.size = m * 2
+		q.dst = make([][]cell, q.size+1)
+		for i := 0; i <= q.size; i++ {
+			q.dst[i] = make([]cell, q.size+1)
 		}
 	}
 
@@ -172,22 +116,22 @@ func LevenshteinAlignment(q *Context, s1, s2 []token) {
 
 	for x = 0; x <= l2; x++ {
 		for y = 0; y <= l1; y++ {
-			q.adst[x][y].above, q.adst[x][y].left, q.adst[x][y].aboveleft = false, false, false
+			q.dst[x][y].above, q.dst[x][y].left, q.dst[x][y].aboveleft = false, false, false
 		}
 	}
 
-	q.adst[0][0].f = 0
+	q.dst[0][0].f = 0
 	x = 0
 	for _, xc = range s2 {
 		x++
-		q.adst[x][0].f = q.adst[x-1][0].f + diff(q, nul, xc)
-		q.adst[x][0].left = true
+		q.dst[x][0].f = q.dst[x-1][0].f + diff(q, nul, xc)
+		q.dst[x][0].left = true
 	}
 	y = 0
 	for _, yc = range s1 {
 		y++
-		q.adst[0][y].f = q.adst[0][y-1].f + diff(q, nul, yc)
-		q.adst[0][y].above = true
+		q.dst[0][y].f = q.dst[0][y-1].f + diff(q, nul, yc)
+		q.dst[0][y].above = true
 	}
 
 	x = 0
@@ -196,23 +140,29 @@ func LevenshteinAlignment(q *Context, s1, s2 []token) {
 		y = 0
 		for _, yc = range s1 {
 			y++
-			aboveleft = q.adst[x-1][y-1].f + diff(q, yc, xc)
-			above = q.adst[x][y-1].f + diff(q, yc, nul)
-			left = q.adst[x-1][y].f + diff(q, nul, xc)
+			aboveleft = q.dst[x-1][y-1].f + diff(q, yc, xc)
+			above = q.dst[x][y-1].f + diff(q, yc, nul)
+			left = q.dst[x-1][y].f + diff(q, nul, xc)
 			if aboveleft <= above && aboveleft <= left {
-				q.adst[x][y].f = aboveleft
-				q.adst[x][y].aboveleft = true
+				q.dst[x][y].f = aboveleft
+				q.dst[x][y].aboveleft = true
 				continue
 			}
 			if above <= left {
-				q.adst[x][y].f = above
-				q.adst[x][y].above = true
+				q.dst[x][y].f = above
+				q.dst[x][y].above = true
 				continue
 			}
-			q.adst[x][y].f = left
-			q.adst[x][y].left = true
+			q.dst[x][y].f = left
+			q.dst[x][y].left = true
 		}
 	}
+
+
+	if ! wantAlign {
+		return q.dst[l2][l1].f / float32(l1+l2)
+	}
+
 
 	line1 := make([]string, l1+l2)
 	line2 := make([]string, l1+l2)
@@ -223,15 +173,15 @@ func LevenshteinAlignment(q *Context, s1, s2 []token) {
 		if x == 0 && y == 0 {
 			return
 		}
-		line3[ln] = q.adst[x][y].f
-		if q.adst[x][y].aboveleft {
+		line3[ln] = q.dst[x][y].f
+		if q.dst[x][y].aboveleft {
 			line1[ln] = html.EscapeString(s1[y-1].str)
 			line2[ln] = html.EscapeString(s2[x-1].str)
 			ln++
 			F(x-1, y-1)
 			return
 		}
-		if q.adst[x][y].above {
+		if q.dst[x][y].above {
 			line1[ln] = html.EscapeString(s1[y-1].str)
 			line2[ln] = ""
 			ln++
@@ -271,8 +221,9 @@ func LevenshteinAlignment(q *Context, s1, s2 []token) {
 		}
 
 	}
-	fmt.Fprintf(q.w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.adst[l2][l1].f, l1+l2, q.adst[l2][l1].f/float32(l1+l2))
+	fmt.Fprintf(q.w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.dst[l2][l1].f, l1+l2, q.dst[l2][l1].f/float32(l1+l2))
 
+	return q.dst[l2][l1].f / float32(l1+l2)
 }
 
 func editDistance(q *Context, i1, i2 item) float32 {
@@ -283,7 +234,7 @@ func editDistance(q *Context, i1, i2 item) float32 {
 
 	// 1 * 1
 	if i1.n == 1 && i2.n == 1 {
-		return Levenshtein(q, i1.w[0], i2.w[0])
+		return Levenshtein(q, i1.w[0], i2.w[0], false)
 	}
 
 	// 1 * n
@@ -294,7 +245,7 @@ func editDistance(q *Context, i1, i2 item) float32 {
 		var sum float32
 		sum = 0.0
 		for i := 0; i < i2.n; i++ {
-			sum += Levenshtein(q, i1.w[0], i2.w[i])
+			sum += Levenshtein(q, i1.w[0], i2.w[i], false)
 		}
 		return sum / float32(i2.n)
 	}
@@ -308,7 +259,7 @@ func editDistance(q *Context, i1, i2 item) float32 {
 	}
 	for i := 0; i < n1; i++ {
 		for j := 0; j < n2; j++ {
-			d[i][j] = Levenshtein(q, i1.w[i], i2.w[j])
+			d[i][j] = Levenshtein(q, i1.w[i], i2.w[j], false)
 		}
 	}
 	l := kgv(n1, n2)

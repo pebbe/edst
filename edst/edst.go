@@ -201,7 +201,7 @@ func doAlign(q *Context, lines []string) {
 				fmt.Fprintf(q.w, "<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
 				for _, iti := range items[i].w {
 					for _, itj := range items[j].w {
-						LevenshteinAlignment(q, iti, itj)
+						Levenshtein(q, iti, itj, true)
 					}
 				}
 			}

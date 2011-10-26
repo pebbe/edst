@@ -10,11 +10,8 @@ type Context struct {
 	w      http.ResponseWriter
 	isText bool
 
-	dst  [][]float32 // for Levenshtein()
-	size int         //
-
-	adst  [][]cell // for LevenshteinAlignment()
-	asize int      //
+	dst  [][]cell
+	size int
 
 	substvalue float32
 	indelvalue float32
@@ -35,9 +32,6 @@ func NewContext(w http.ResponseWriter) *Context {
 
 		dst:  nil,
 		size: -1,
-
-		adst:  nil,
-		asize: -1,
 
 		substvalue: 2.0,
 		indelvalue: 1.0,

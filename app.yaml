@@ -7,6 +7,9 @@ handlers:
 - url: /
   static_files: index.html
   upload: index.html
+- url: /help.html
+  static_files: help.html
+  upload: help.html
 - url: /style.css
   static_files: style.css
   upload: style.css

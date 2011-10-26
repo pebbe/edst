@@ -2,7 +2,20 @@ package edst
 
 import (
 	"fmt"
+	"os"
 )
+
+func (q *Context) Printf(format string, a ...interface{}) (n int, errno os.Error) {
+	return fmt.Fprintf(q.w, format, a...)
+}
+
+func (q *Context) Print(a ...interface{}) (n int, errno os.Error) {
+	return fmt.Fprint(q.w, a...)
+}
+
+func (q *Context) Println(a ...interface{}) (n int, errno os.Error) {
+	return fmt.Fprintln(q.w, a...)
+}
 
 func setTextPlain(q *Context) {
 	if !q.isText {

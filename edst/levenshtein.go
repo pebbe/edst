@@ -196,32 +196,32 @@ func Levenshtein(q *Context, s1, s2 []token, wantAlign bool) float32 {
 	}
 	F(l2, l1)
 
-	fmt.Fprintf(q.w, "<table class=\"align\"><tr class=\"txt\">\n")
+	q.Printf("<table class=\"align\"><tr class=\"txt\">\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line1[i] == " " {
 			line1[i] = "<span class=\"space\">SP</span>"
 		}
-		fmt.Fprintf(q.w, "<td>&nbsp;%s&nbsp;</td>\n", line1[i])
+		q.Printf("<td>&nbsp;%s&nbsp;</td>\n", line1[i])
 	}
-	fmt.Fprintf(q.w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr class=\"txt\">\n")
+	q.Printf("<td class=\"white\">&nbsp;</td>\n</tr>\n<tr class=\"txt\">\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line2[i] == " " {
 			line2[i] = "<span class=\"space\">SP</span>"
 		}
-		fmt.Fprintf(q.w, "<td>&nbsp;%s&nbsp;</td>\n", line2[i])
+		q.Printf("<td>&nbsp;%s&nbsp;</td>\n", line2[i])
 	}
 	f = 0.0
-	fmt.Fprintf(q.w, "<td class=\"white\">&nbsp;</td>\n</tr>\n<tr>\n")
+	q.Printf("<td class=\"white\">&nbsp;</td>\n</tr>\n<tr>\n")
 	for i := ln - 1; i >= 0; i-- {
 		if line3[i] != f {
-			fmt.Fprintf(q.w, "<td>%g</td>\n", line3[i]-f)
+			q.Printf("<td>%g</td>\n", line3[i]-f)
 			f = line3[i]
 		} else {
-			fmt.Fprintf(q.w, "<td>&nbsp;</td>\n")
+			q.Printf("<td>&nbsp;</td>\n")
 		}
 
 	}
-	fmt.Fprintf(q.w, "<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.dst[l2][l1].f, l1+l2, q.dst[l2][l1].f/float32(l1+l2))
+	q.Printf("<td class=\"total\">%g / %d = %.4f</td></tr>\n</table>\n", q.dst[l2][l1].f, l1+l2, q.dst[l2][l1].f/float32(l1+l2))
 
 	return q.dst[l2][l1].f / float32(l1+l2)
 }
@@ -384,13 +384,14 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 	items := make([]string, 0, 300)
 	state := NULL
 
-	writeError := func(lineno int, msg string) {
+	printfError := func(lineno int, format string, a ...interface{}) {
 		setTextPlain(q)
 		if lineno < 0 {
-			fmt.Fprintln(q.w, "Definition file:", msg)
+			q.Print("Definition file: ")
 		} else {
-			fmt.Fprintf(q.w, "Definition file, line %d: %v\n", lineno+1, msg)
+			q.Printf("Definition file, line %d: ", lineno+1)
 		}
+		q.Printf(format + "\n", a...)
 		err = true
 	}
 
@@ -437,14 +438,14 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 			finish()
 			a := strings.Fields(line)
 			if len(a) != 4 {
-				writeError(lineno, "Wrong number of arguments")
+				printfError(lineno, "Wrong number of arguments")
 			} else {
 				values := make([]float32, 3)
 				var e os.Error
 				for i := 0; i < 3; i++ {
 					values[i], e = strconv.Atof32(a[i+1])
 					if e != nil {
-						writeError(lineno, e.String())
+						printfError(lineno, "%v", e)
 					}
 				}
 				q.substvalue = values[0]
@@ -468,11 +469,11 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 			a := strings.Fields(line)
 			f = 0.0
 			if len(a) != 2 {
-				writeError(lineno, "Wrong number of arguments")
+				printfError(lineno, "Wrong number of arguments")
 			} else {
 				ff, e := strconv.Atof32(a[1])
 				if e != nil {
-					writeError(lineno, e.String())
+					printfError(lineno, "%v", e)
 				} else {
 					f = ff
 				}
@@ -493,14 +494,14 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 						var cc int
 						_, e := fmt.Sscanf(c[2:], "%x", &cc)
 						if e != nil {
-							writeError(lineno, fmt.Sprintf("\"%s\" is not a valid character value", c))
+							printfError(lineno, "\"%s\" is not a valid character value", c)
 						} else {
 							items = append(items, string(cc))
 						}
 					} else {
 						cc, e := strconv.Atoi(c)
 						if e != nil {
-							writeError(lineno, fmt.Sprintf("\"%s\" is not a valid character value", c))
+							printfError(lineno, "\"%s\" is not a valid character value", c)
 						} else {
 							items = append(items, string(cc))
 						}
@@ -510,13 +511,13 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 				a := strings.Fields(line)
 				for _, c := range a {
 					if utf8.RuneCountInString(c) != 2 {
-						writeError(lineno, fmt.Sprintf("Invalid pair \"%v\", should be two characters", c))
+						printfError(lineno, "Invalid pair \"%v\", should be two characters", c)
 					} else {
 						items = append(items, c)
 					}
 				}
 			} else {
-				writeError(lineno, "Invalid line")
+				printfError(lineno, "Invalid line")
 			}
 		}
 	}

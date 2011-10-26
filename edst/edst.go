@@ -1,7 +1,6 @@
 package edst
 
 import (
-	"fmt"
 	"html"
 	"http"
 	"os"
@@ -36,18 +35,19 @@ func submit(w http.ResponseWriter, r *http.Request) {
 func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
 	err = false
 
-	writeError := func(lineno int, msg string) {
+	printfError := func(lineno int, format string, a ...interface{}) {
 		setTextPlain(q)
 		if lineno < 0 {
-			fmt.Fprintln(q.w, "Data file:", msg)
+			q.Print("Data file: ")
 		} else {
-			fmt.Fprintf(q.w, "Data file, line %d: %v\n", lineno+1, msg)
+			q.Printf("Data file, line %d: ", lineno+1)
 		}
+		q.Printf(format + "\n", a...)
 		err = true
 	}
 
 	if dataerror != nil {
-		writeError(-1, dataerror.String())
+		printfError(-1, "%v", dataerror)
 		return
 	}
 
@@ -55,7 +55,7 @@ func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
 	nlines := len(datalines)
 	for {
 		if idx == nlines {
-			writeError(idx, "No data in file")
+			printfError(idx, "No data in file")
 			return
 		}
 		if s := strings.TrimSpace(datalines[idx]); s == "" || s[:1] == "#" {
@@ -70,7 +70,7 @@ func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
 		nCols--
 	}
 	if nCols < 2 {
-		writeError(idx, "No column labels found")
+		printfError(idx, "No column labels found")
 		return
 	}
 
@@ -80,7 +80,7 @@ func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
 		}
 		cells := strings.Split(datalines[idx], "\t")
 		if n := len(cells) - 1; n != nCols {
-			writeError(idx, fmt.Sprintf("Found %d data cells, should be %d", n, nCols))
+			printfError(idx, "Found %d data cells, should be %d", n, nCols)
 		}
 	}
 
@@ -94,7 +94,7 @@ func doEdst(q *Context, lines []string) {
 	idx := 0
 	for {
 		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
-			fmt.Fprintf(q.w, lines[idx])
+			q.Print(lines[idx])
 			idx++
 		} else {
 			break
@@ -105,19 +105,19 @@ func doEdst(q *Context, lines []string) {
 		xlabs = xlabs[1:]
 	}
 	for _, xlab := range xlabs {
-		fmt.Fprintf(q.w, "\t%v", strings.TrimSpace(xlab))
+		q.Printf("\t%v", strings.TrimSpace(xlab))
 	}
 	for i := 0; i < len(xlabs)-1; i++ {
 		for j := i + 1; j < len(xlabs); j++ {
-			fmt.Fprintf(q.w, "\t%v:%v", strings.TrimSpace(xlabs[i]), strings.TrimSpace(xlabs[j]))
+			q.Printf("\t%v:%v", strings.TrimSpace(xlabs[i]), strings.TrimSpace(xlabs[j]))
 		}
 	}
-	fmt.Fprintln(q.w)
+	q.Println()
 
 	// do the rest of the data
 	for idx++; idx < len(lines); idx++ {
 		if s := strings.TrimSpace(lines[idx]); s == "" || s[:1] == "#" {
-			fmt.Fprintf(q.w, lines[idx])
+			q.Print(lines[idx])
 			continue
 		}
 
@@ -125,7 +125,7 @@ func doEdst(q *Context, lines []string) {
 
 		sep := ""
 		for _, i := range cells {
-			fmt.Fprintf(q.w, "%v%v", sep, strings.TrimSpace(i))
+			q.Printf("%v%v", sep, strings.TrimSpace(i))
 			sep = "\t"
 		}
 
@@ -135,18 +135,18 @@ func doEdst(q *Context, lines []string) {
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				fmt.Fprintf(q.w, "\t%.7f", editDistance(q, items[i], items[j]))
-				// fmt.Fprintf(q.w, "\n\t%v\n\t%v", items[i], items[j])
+				q.Printf("\t%.7f", editDistance(q, items[i], items[j]))
+				// q.Printf("\n\t%v\n\t%v", items[i], items[j])
 			}
 		}
 
-		fmt.Fprintln(q.w)
+		q.Println()
 	}
 
 }
 
 func doAlign(q *Context, lines []string) {
-	fmt.Fprint(q.w, `<html>
+	q.Print(`<html>
   <head>
     <title>Alignments</title>
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -155,11 +155,11 @@ func doAlign(q *Context, lines []string) {
 `)
 
 	/*
-		fmt.Fprintf(q.w, "<pre>\nequi:\n%v\n</pre>\n", q.equi)
-		fmt.Fprintf(q.w, "<pre>\nparen:\n%v\n%v\n</pre>\n", q.paren, q.paren2)
-		fmt.Fprintf(q.w, "<pre>\nmods:\n%v\n</pre>\n", q.mods)
-		fmt.Fprintf(q.w, "<pre>\nindel:\n%v\n</pre>\n", q.indelSets)
-		fmt.Fprintf(q.w, "<pre>\nsubst:\n%v\n</pre>\n", q.substSets)
+		q.Printf("<pre>\nequi:\n%v\n</pre>\n", q.equi)
+		q.Printf("<pre>\nparen:\n%v\n%v\n</pre>\n", q.paren, q.paren2)
+		q.Printf("<pre>\nmods:\n%v\n</pre>\n", q.mods)
+		q.Printf("<pre>\nindel:\n%v\n</pre>\n", q.indelSets)
+		q.Printf("<pre>\nsubst:\n%v\n</pre>\n", q.substSets)
 	*/
 
 	// do the data header
@@ -190,7 +190,7 @@ func doAlign(q *Context, lines []string) {
 		ylab := cells[0]
 		cells = cells[1:]
 
-		fmt.Fprintf(q.w, "<h2>%s</h2>\n", html.EscapeString(ylab))
+		q.Printf("<h2>%s</h2>\n", html.EscapeString(ylab))
 
 		items := make([]item, len(cells))
 		for i := 0; i < len(cells); i++ {
@@ -198,7 +198,7 @@ func doAlign(q *Context, lines []string) {
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				fmt.Fprintf(q.w, "<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
+				q.Printf("<div>%s &mdash; %s</div>\n", xlabs[i], xlabs[j])
 				for _, iti := range items[i].w {
 					for _, itj := range items[j].w {
 						Levenshtein(q, iti, itj, true)
@@ -209,6 +209,6 @@ func doAlign(q *Context, lines []string) {
 
 	}
 
-	fmt.Fprintln(q.w, "</body>\n</html>")
+	q.Println("</body>\n</html>")
 
 }

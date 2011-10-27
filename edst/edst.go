@@ -135,8 +135,12 @@ func doEdst(q *Context, lines []string) {
 		}
 		for i := 0; i < len(items)-1; i++ {
 			for j := i + 1; j < len(items); j++ {
-				q.Printf("\t%.7f", editDistance(q, items[i], items[j]))
-				// q.Printf("\n\t%v\n\t%v", items[i], items[j])
+				if items[i].n == 0 || items[j].n == 0 {
+					q.Print("\t")
+				} else {
+					q.Printf("\t%.7f", editDistance(q, items[i], items[j]))
+					// q.Printf("\n\t%v\n\t%v", items[i], items[j])
+				}
 			}
 		}
 

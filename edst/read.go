@@ -1,13 +1,12 @@
 package edst
 
 import (
-	"http"
 	"io/ioutil"
-	"os"
+	"net/http"
 	"strings"
 )
 
-func gettextfile(r *http.Request, key string) ([]string, os.Error) {
+func gettextfile(r *http.Request, key string) ([]string, error) {
 	// get data as lines of string, properly decoded
 	f, _, e := r.FormFile(key)
 	if e != nil {
@@ -33,9 +32,9 @@ func decode(b []byte) (data string, charset string) {
 	// BOM-UTF-16-BE
 	if b[0] == 0xfe && b[1] == 0xff {
 		ln := len(b)/2 - 1
-		s := make([]int, ln)
+		s := make([]int32, ln)
 		for i := 0; i < ln; i++ {
-			s[i] = int(b[2*i+3]) + 256*int(b[2*i+2])
+			s[i] = int32(b[2*i+3]) + 256*int32(b[2*i+2])
 		}
 		return string(s), "UTF-16-BE"
 	}
@@ -43,9 +42,9 @@ func decode(b []byte) (data string, charset string) {
 	// BOM-UTF-16-LE
 	if b[0] == 0xff && b[1] == 0xfe {
 		ln := len(b)/2 - 1
-		s := make([]int, ln)
+		s := make([]int32, ln)
 		for i := 0; i < ln; i++ {
-			s[i] = int(b[2*i+2]) + 256*int(b[2*i+3])
+			s[i] = int32(b[2*i+2]) + 256*int32(b[2*i+3])
 		}
 		return string(s), "UTF-16-LE"
 	}
@@ -96,9 +95,9 @@ func decode(b []byte) (data string, charset string) {
 
 	// default: ISO-8859-1 
 	ln := len(b)
-	s := make([]int, ln)
+	s := make([]int32, ln)
 	for i := 0; i < ln; i++ {
-		s[i] = int(b[i])
+		s[i] = int32(b[i])
 	}
 	return string(s), "ISO-8859-1"
 }

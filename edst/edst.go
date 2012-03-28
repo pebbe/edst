@@ -2,8 +2,7 @@ package edst
 
 import (
 	"html"
-	"http"
-	"os"
+	"net/http"
 	"strings"
 )
 
@@ -32,17 +31,17 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
+func checkData(q *Context, datalines []string, dataerror error) (err bool) {
 	err = false
 
 	printfError := func(lineno int, format string, a ...interface{}) {
-		setTextPlain(q)
+		q.setTextPlain()
 		if lineno < 0 {
 			q.Print("Data file: ")
 		} else {
 			q.Printf("Data file, line %d: ", lineno+1)
 		}
-		q.Printf(format + "\n", a...)
+		q.Printf(format+"\n", a...)
 		err = true
 	}
 
@@ -88,7 +87,7 @@ func checkData(q *Context, datalines []string, dataerror os.Error) (err bool) {
 }
 
 func doEdst(q *Context, lines []string) {
-	setTextPlain(q)
+	q.setTextPlain()
 
 	// do the data header
 	idx := 0

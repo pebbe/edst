@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"html"
 	"math"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
-	"utf8"
+	"unicode/utf8"
 )
+
+//. types
 
 type StateType int
 
@@ -42,6 +43,8 @@ type item struct {
 	n int       // number of words in item: "a / b / c" = 3
 	w [][]token // a list of n words, each a list of tokens
 }
+
+//. code
 
 func maxint(i1, i2 int) int {
 	if i1 > i2 {
@@ -158,11 +161,9 @@ func Levenshtein(q *Context, s1, s2 []token, wantAlign bool) float32 {
 		}
 	}
 
-
-	if ! wantAlign {
+	if !wantAlign {
 		return q.dst[l2][l1].f / float32(l1+l2)
 	}
-
 
 	line1 := make([]string, l1+l2)
 	line2 := make([]string, l1+l2)
@@ -373,7 +374,7 @@ func tokenize(q *Context, s string) []token {
 	return tokens
 }
 
-func setup(q *Context, lines []string, e os.Error) (err bool) {
+func setup(q *Context, lines []string, e error) (err bool) {
 
 	if e != nil {
 		return false
@@ -385,13 +386,13 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 	state := NULL
 
 	printfError := func(lineno int, format string, a ...interface{}) {
-		setTextPlain(q)
+		q.setTextPlain()
 		if lineno < 0 {
 			q.Print("Definition file: ")
 		} else {
 			q.Printf("Definition file, line %d: ", lineno+1)
 		}
-		q.Printf(format + "\n", a...)
+		q.Printf(format+"\n", a...)
 		err = true
 	}
 
@@ -440,17 +441,17 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 			if len(a) != 4 {
 				printfError(lineno, "Wrong number of arguments")
 			} else {
-				values := make([]float32, 3)
-				var e os.Error
+				values := make([]float64, 3)
+				var e error
 				for i := 0; i < 3; i++ {
-					values[i], e = strconv.Atof32(a[i+1])
+					values[i], e = strconv.ParseFloat(a[i+1], 32)
 					if e != nil {
 						printfError(lineno, "%v", e)
 					}
 				}
-				q.substvalue = values[0]
-				q.indelvalue = values[1]
-				q.modvalue = values[2]
+				q.substvalue = float32(values[0])
+				q.indelvalue = float32(values[1])
+				q.modvalue = float32(values[2])
 			}
 		} else if line == "EQUI" {
 			finish()
@@ -471,11 +472,11 @@ func setup(q *Context, lines []string, e os.Error) (err bool) {
 			if len(a) != 2 {
 				printfError(lineno, "Wrong number of arguments")
 			} else {
-				ff, e := strconv.Atof32(a[1])
+				ff, e := strconv.ParseFloat(a[1], 32)
 				if e != nil {
 					printfError(lineno, "%v", e)
 				} else {
-					f = ff
+					f = float32(ff)
 				}
 			}
 			if strings.HasPrefix(line, "INDEL") {

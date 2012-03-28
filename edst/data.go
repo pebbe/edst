@@ -1,11 +1,10 @@
 package edst
 
 import (
-	"http"
+	"net/http"
 )
 
 // The context acts as global store for a single request
-
 type Context struct {
 	w      http.ResponseWriter
 	isText bool

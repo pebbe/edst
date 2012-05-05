@@ -2,7 +2,7 @@
 Pasen	Easter	påsk
 aanbevelen	recommend	rekommendera
 aankomsttijd	time of arrival	ankomsttid
-aardewerk	pottery	keramik, lergods
+aardewerk	pottery	keramik / lergods
 achternaam	surname	efternamn
 advies	advice	råd
 afdruk	print	kopia
@@ -41,7 +41,7 @@ cd-rom	CD-ROM	cd-rom
 cheque	cheque	check
 citroen	lemon	citron
 constipatie	constipation	förstoppning
-controleren	check	kontrollera, kolla
+controleren	check	kontrollera / kolla
 corresponderen	correspond	korrespondera
 dag (hallo)	hello	hej
 delicatessenwinkel	delicatessen	delikatessbutik
@@ -71,7 +71,7 @@ gegevens	information	uppgivter
 geld	money	pengar
 geneesmiddel	medication	läkemedel
 genieten	enjoy	njuta
-geschenk	gift	present, gåva
+geschenk	gift	present / gåva
 gevarendriehoek	warning triangle	varningstriangel
 gezicht	face	ansikte
 godsdienst	religion	religion
@@ -80,7 +80,7 @@ grens	border	gräns
 groepsreis	package tour	gruppresa
 haarlak	hairspray	hårspray
 halte	stop	hållplats
-handtekening	signature	underskrift, namnteckning
+handtekening	signature	underskrift / namnteckning
 hechting	stitch	stygn
 helpen	help	hjälpa
 hier	here	här
@@ -116,14 +116,14 @@ kwal	jellyfish	manet
 lachen	laugh	skratta
 langlaufen	cross-country skiing	längdåkning
 leeftijd	age	ålder
-lens	lens	lins, objektiv
+lens	lens	lins / objektiv
 lichaam	body	kropp
 liften	hitchhike	lifta
 lippenstift	lipstick	läppstift
 lotion	lotion	hudkräm
 luchtvervuiling	air pollution	luftförorening
 maagzweer	ulcer	magsår
-maken (repareren)	fix	laga, reparera
+maken (repareren)	fix	laga / reparera
 mat (foto)	mat	matt
 meloen	melon	melon
 metronet	underground railway system	tunnelbanenät
@@ -149,27 +149,27 @@ oordruppels	eardrops	örondroppar
 opera	opera	opera
 oprit	slip road	påfart
 ouders	parents	föräldrar
-oversteken	cross the road	gå över, korsa
+oversteken	cross the road	gå över / korsa
 paleis	palace	slott
 parasol	parasol	parasoll
-pauze	break	paus, rast
+pauze	break	paus / rast
 permanent (haar)	perm	permanent
-perron	platform	perrong, plattform, spår
-pijn	pain	ont, smärta, värk
+perron	platform	perrong / plattform / spår
+pijn	pain	ont / smärta / värk
 pinnen	draw money from a cash dispenser	ta ut pengar i bankomat
 plattegrond	city map	karta
 pond	pound	halvt kilo
-portier	porter	portier, portvakt
+portier	porter	portier / portvakt
 prachtig	splendid	praktfull
 programma	programme	program
 rat	rat	råtta
 rechtstreeks	directly	direkt
-regenjas	raincoat	regnrock, regnkappa, regnjacka
+regenjas	raincoat	regnrock / regnkappa / regnjacka
 reisbureau	travel agency	resebyrå
 rem	brake	broms
 reserveonderdelen	spare parts	reservdelar
-riem	belt	bälte, skärp
-rijstrook	lane	fil, körfält
+riem	belt	bälte / skärp
+rijstrook	lane	fil / körfält
 rondreis	round trip	rundresa
 rots	rock	klippa
 rundvlees	beef	oxkött
@@ -182,46 +182,46 @@ shag	rolling tobacco	rulltobak
 sinaasappelsap	orange juice	apelsinjuice
 skipas	lift pass	liftkort
 slaapwagen	sleeping car	sovvagn
-slee	sledge	släde, kälke
+slee	sledge	släde / kälke
 slokdarm	gullet	matstrupe
 snel	fast	snabb
 soa	S.T.D.	könssjukdom
 specialist	specialist	specialist
 spellen	spell	stava
 spoorboekje	timetable	tågtidtabel
-spullen	things	saker, grejor
+spullen	things	saker / grejor
 starten	start	starta
 stilte	silence	tystnad
 storen	disturb	störa
 strijkbout	iron	strykjärn
-stuk (kapot)	broken	sönder, trasig
+stuk (kapot)	broken	sönder / trasig
 surfplank	surf board	vindsurfingbräda
 tafeltennissen	play table tennis	spela bordtennis
 tas (groot)	bag	väska
-tekenen (signeren)	sign	signera, skriva under, underteckna
+tekenen (signeren)	sign	signera / skriva under / underteckna
 telelens	telephoto lens	teleobjektiv
 tentzeil	canvas	tältduk
 thee	tea	te
-tijdschrift	magazine	tidskrift, tidning
+tijdschrift	magazine	tidskrift / tidning
 toeristenkaart	tourist card	turistkort
 tolweg	toll road	betalväg
 totaal	total	total
-trottoir	pavement	trottoar, gångbana
-tweepersoons	double	dubbel, tvåpersons
+trottoir	pavement	trottoar / gångbana
+tweepersoons	double	dubbel / tvåpersons
 uitlaatpijp	exhaust pipe	avgasrör
 uitleggen	explain	förklarra
-uitverkoop	sale	rea(lisation), utförsäljning
+uitverkoop	sale	rea(lisation) / utförsäljning
 vaas	vase	vas
 vanavond (tot 21 uur)	this evening	i kväll
-veel	much, many	mycket, många
+veel	much / many	mycket / många
 ventiel	valve	ventil
 verdoven	anaesthetize	bedöva
 vergunning	permit	tillstånd
 verlengen	extend	förlänga
 verschonen (baby)	change the baby's nappy	byta blöjor
-vertrekken	leave	resa, avgå
+vertrekken	leave	resa / avgå
 vest	cardigan	kofta
-vies	dirty	äcklig, smutsig, inte ren
+vies	dirty	äcklig / smutsig / inte ren
 vitaminetabletten	vitamin tablets	vitaminpiller
 vliegen	fly	flyga
 voedsel	food	mat
@@ -231,7 +231,7 @@ voorvork	fork	framgaffel
 vriend	friend	vän
 vrijwilligerswerk	voluntary work	volontärarbete
 vulling	filling	fyllning
-wachtkamer	waiting room	väntrum, väntsal
+wachtkamer	waiting room	väntrum / väntsal
 wanneer?	when?	när?
 wassen	wash	tvätta
 watten	cotton wool	bomull

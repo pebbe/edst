@@ -1,4 +1,4 @@
-package edst
+package main
 
 import (
 	"io/ioutil"
@@ -93,7 +93,7 @@ func decode(b []byte) (data string, charset string) {
 		return string(b), "UTF-8"
 	}
 
-	// default: ISO-8859-1 
+	// default: ISO-8859-1
 	ln := len(b)
 	s := make([]int32, ln)
 	for i := 0; i < ln; i++ {

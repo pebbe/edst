@@ -1,4 +1,4 @@
-package edst
+package main
 
 import (
 	"fmt"

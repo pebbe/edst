@@ -1,13 +1,25 @@
-package edst
+package main
 
 import (
+	"fmt"
 	"html"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
-func init() {
+func main() {
 	http.HandleFunc("/submit", submit)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
+	}
+
+	log.Printf("Listening on port %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
 
 func submit(w http.ResponseWriter, r *http.Request) {

@@ -1,33 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"html"
-	"log"
-	"net/http"
+	"net/http/cgi"
 	"os"
 	"strings"
 )
 
 func main() {
-	http.HandleFunc("/submit", submit)
+	q := NewContext()
+	defer q.output(os.Stdout)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-		log.Printf("Defaulting to port %s", port)
-	}
+	r, _ := cgi.Request()
 
-	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-}
-
-func submit(w http.ResponseWriter, r *http.Request) {
 	datalines, dataerror := gettextfile(r, "data")
 	deflines, deferror := gettextfile(r, "def")
 	choice := r.FormValue("choice")
-
-	q := NewContext(w)
 
 	err1 := checkData(q, datalines, dataerror)
 	err2 := setup(q, deflines, deferror)
@@ -47,7 +35,7 @@ func checkData(q *Context, datalines []string, dataerror error) (err bool) {
 	err = false
 
 	printfError := func(lineno int, format string, a ...interface{}) {
-		q.setTextPlain()
+		q.isText = true
 		if lineno < 0 {
 			q.Print("Data file: ")
 		} else {
@@ -99,7 +87,7 @@ func checkData(q *Context, datalines []string, dataerror error) (err bool) {
 }
 
 func doEdst(q *Context, lines []string) {
-	q.setTextPlain()
+	q.isText = true
 
 	// do the data header
 	idx := 0
@@ -161,10 +149,14 @@ func doEdst(q *Context, lines []string) {
 }
 
 func doAlign(q *Context, lines []string) {
-	q.Print(`<html>
+	q.Print(`<!DOCTYPE html>
+<html>
   <head>
     <title>Alignments</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="../favicon.ico" type="image/ico">
+    <link rel="stylesheet" type="text/css" href="../style.css">
   </head>
   <body>
 `)

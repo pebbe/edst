@@ -1,13 +1,14 @@
 package main
 
 import (
-	"net/http"
+	"bytes"
 )
 
 // The context acts as global store for a single request
 type Context struct {
-	w      http.ResponseWriter
 	isText bool
+
+	buf bytes.Buffer
 
 	dst  [][]cell
 	size int
@@ -24,9 +25,8 @@ type Context struct {
 	substSets []set
 }
 
-func NewContext(w http.ResponseWriter) *Context {
+func NewContext() *Context {
 	return &Context{
-		w:      w,
 		isText: false,
 
 		dst:  nil,

@@ -386,7 +386,7 @@ func setup(q *Context, lines []string, e error) (err bool) {
 	state := NULL
 
 	printfError := func(lineno int, format string, a ...interface{}) {
-		q.setTextPlain()
+		q.isText = true
 		if lineno < 0 {
 			q.Print("Definition file: ")
 		} else {

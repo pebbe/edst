@@ -1,3 +1,3 @@
 String Edit Distance, written in Go.
 
-This runs on [Google App Engine](http://pebbe-edst.appspot.com/)
+This runs [here](https://www.let.rug.nl/kleiweg/edst/)
